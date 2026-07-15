@@ -78,7 +78,7 @@ export function Sidebar() {
             <span className="ml-auto font-mono text-[11px] text-emerald-400">ONLINE</span>
           </div>
           <p className="mt-2 text-[11px] leading-relaxed text-white/35">
-            毕业设计演示 · Mock 数据
+            本地优先 · 开源可部署
           </p>
         </div>
       </div>

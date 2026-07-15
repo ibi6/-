@@ -19,15 +19,15 @@ const sections = [
     body: '前端：React + Vite + Tailwind\n后端：Python FastAPI\n解析：Scapy / dpkt + 会话重组\n存储：SQLite / PostgreSQL',
   },
   {
-    title: '毕业设计说明',
-    body: '当前为前端展示版，数据与上传流程均为 Mock。确认界面与功能范围后，将接入真实 Python 解析后端。',
+    title: '版本说明',
+    body: '当前版本支持经典 PCAP 上传与异步解析。生产使用请配合鉴权、反代与存储加固。',
   },
 ]
 
 export function Help() {
   return (
     <div>
-      <PageHeader title="帮助文档" subtitle="系统使用说明与毕设说明" />
+      <PageHeader title="帮助文档" subtitle="系统使用与部署说明" />
       <div className="grid gap-4 lg:grid-cols-2">
         {sections.map((s) => (
           <Card key={s.title}>

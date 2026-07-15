@@ -22,8 +22,7 @@
   <a href="docs/ARCHITECTURE.md">架构说明</a> ·
   <a href="docs/API.md">接口文档</a> ·
   <a href="docs/DEPLOYMENT.md">部署指南</a> ·
-  <a href="docs/ROADMAP.md">路线图</a> ·
-  <a href="docs/PRODUCT.md">产品定位</a>
+  <a href="docs/ROADMAP.md">路线图</a>
 </p>
 
 ---
@@ -252,12 +251,6 @@ npm run build
 
 ---
 
-## 毕设 / 引用
-
-学术使用请注明仓库地址与版本号。设计材料见 `docs/毕业设计设计方案.md`，产品定位见 [`docs/PRODUCT.md`](docs/PRODUCT.md)。
-
----
-
 <p align="center">
-  <sub>给需要「载荷真相」的人——而不是只能放进 PPT 的半成品。</sub>
+  <sub>PayloadX — 本地优先的流量载荷提取与调查控制台</sub>
 </p>

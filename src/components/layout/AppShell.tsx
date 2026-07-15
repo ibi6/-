@@ -78,7 +78,7 @@ export function AppShell() {
           <Outlet />
         </main>
         <footer className="px-6 py-4 text-center text-[11px] text-muted/80">
-          Copyright © 2025 基于Python的流量应用载荷提取系统 · 毕业设计演示
+          Copyright © 2025 PayloadX · 流量应用载荷提取系统
         </footer>
       </div>
     </div>
