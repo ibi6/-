@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="320" viewBox="0 0 1280 320" fill="none" role="img" aria-label="PayloadX">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1280" y2="320" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0B1220"/>
+      <stop offset="0.55" stop-color="#0F172A"/>
+      <stop offset="1" stop-color="#134E4A"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="720" y1="40" x2="1200" y2="280" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2DD4BF" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#38BDF8" stop-opacity="0.35"/>
+    </linearGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" stroke="white" stroke-opacity="0.04"/>
+    </pattern>
+  </defs>
+  <rect width="1280" height="320" fill="url(#bg)"/>
+  <rect width="1280" height="320" fill="url(#grid)"/>
+  <circle cx="1040" cy="160" r="140" fill="url(#accent)" opacity="0.25"/>
+  <circle cx="1140" cy="60" r="80" fill="#2DD4BF" opacity="0.12"/>
+  <rect x="64" y="72" width="56" height="56" rx="14" fill="#0D9488"/>
+  <path d="M76 90h32v6H76V90zm0 14h22v6H76v-6zm0 14h28v6H76v-6z" fill="white"/>
+  <text x="140" y="108" fill="white" font-family="Microsoft YaHei, PingFang SC, Segoe UI, sans-serif" font-size="40" font-weight="700">PayloadX</text>
+  <text x="140" y="150" fill="#94A3B8" font-family="Microsoft YaHei, PingFang SC, Segoe UI, sans-serif" font-size="22">流量应用载荷提取与调查控制台</text>
+  <text x="140" y="200" fill="#CBD5E1" font-family="ui-monospace, Consolas, monospace" font-size="15">捕获 → 解析 → 重组 → 提取 → 研判</text>
+  <g font-family="ui-monospace, Consolas, monospace" font-size="12" fill="#5EEAD4">
+    <rect x="140" y="230" width="88" height="28" rx="8" fill="#042F2E" stroke="#0D9488"/>
+    <text x="156" y="248">FastAPI</text>
+    <rect x="240" y="230" width="72" height="28" rx="8" fill="#042F2E" stroke="#0D9488"/>
+    <text x="256" y="248">React</text>
+    <rect x="324" y="230" width="88" height="28" rx="8" fill="#042F2E" stroke="#0D9488"/>
+    <text x="340" y="248">SQLAlchemy</text>
+    <rect x="424" y="230" width="64" height="28" rx="8" fill="#042F2E" stroke="#0D9488"/>
+    <text x="440" y="248">PCAP</text>
+  </g>
+</svg>

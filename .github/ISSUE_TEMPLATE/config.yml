@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 安全问题（请勿公开）
+    url: https://github.com/OWNER/payloadx/security/advisories/new
+    about: 漏洞请走私密安全通告；发布仓库后请将 OWNER 改成真实用户名或组织名。
