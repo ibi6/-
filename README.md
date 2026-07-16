@@ -3,18 +3,16 @@
 </p>
 
 <p align="center">
-  <strong>PayloadX</strong> · 流量应用载荷提取与调查控制台<br/>
-  <em>捕获 → 解析 → 重组 → 提取 → 研判</em>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/RELEASE-v1.0-14B8A6?style=for-the-badge&amp;labelColor=07131D" alt="release v1.0" /></a>
+  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/PYTHON-3.11%2B-0F2630?style=for-the-badge&amp;logo=python&amp;logoColor=7DD3FC&amp;labelColor=07131D" alt="Python 3.11+" /></a>
+  <a href="https://react.dev/"><img src="https://img.shields.io/badge/REACT-19-0F2630?style=for-the-badge&amp;logo=react&amp;logoColor=67E8F9&amp;labelColor=07131D" alt="React 19" /></a>
+  <a href="backend/requirements.txt"><img src="https://img.shields.io/badge/FASTAPI-API-0F2630?style=for-the-badge&amp;logo=fastapi&amp;logoColor=5EEAD4&amp;labelColor=07131D" alt="FastAPI" /></a>
+  <a href="docker-compose.yml"><img src="https://img.shields.io/badge/DOCKER-COMPOSE-0F2630?style=for-the-badge&amp;logo=docker&amp;logoColor=7DD3FC&amp;labelColor=07131D" alt="Docker Compose" /></a>
 </p>
 
 <p align="center">
-  <a href="#快速开始"><img src="https://img.shields.io/badge/快速开始-两条命令-0D9488?style=flat-square" alt="quick start" /></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/协议-MIT-blue?style=flat-square" alt="license" /></a>
-  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white" alt="python" /></a>
-  <a href="https://react.dev/"><img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black" alt="react" /></a>
-  <a href="backend/requirements.txt"><img src="https://img.shields.io/badge/API-FastAPI-009688?style=flat-square" alt="fastapi" /></a>
-  <a href=".github/workflows/ci.yml"><img src="https://img.shields.io/badge/CI-GitHub%20Actions-2088FF?style=flat-square&logo=githubactions&logoColor=white" alt="ci" /></a>
-  <a href="docker-compose.yml"><img src="https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker&logoColor=white" alt="docker" /></a>
+  <strong>从 PCAP 到证据链，一套完成捕获、重组、提取与研判。</strong><br/>
+  <sub>本地优先 · 可检索 · 可审计 · 面向网络运维、安全分析与教学场景</sub>
 </p>
 
 <p align="center">
