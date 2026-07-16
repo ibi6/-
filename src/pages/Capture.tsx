@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import {
   CheckCircle2,
@@ -15,11 +15,14 @@ import { Card, CardBody, CardHeader } from '../components/ui/Card'
 import { api, type ApiTask } from '../lib/api'
 import { formatBytes, formatTime } from '../lib/format'
 import { cn } from '../lib/cn'
+import { validateCaptureFile } from '../lib/file-validation'
 
 type Stage = 'idle' | 'selected' | 'uploading' | 'queued' | 'error'
 
 export function Capture() {
   const navigate = useNavigate()
+  const fileInputId = useId()
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [dragOver, setDragOver] = useState(false)
   const [file, setFile] = useState<File | null>(null)
   const [stage, setStage] = useState<Stage>('idle')
@@ -44,13 +47,10 @@ export function Capture() {
 
   const acceptFile = useCallback((f: File | null) => {
     if (!f) return
-    const ok =
-      f.name.endsWith('.pcap') ||
-      f.name.endsWith('.cap') ||
-      f.name.endsWith('.pcapng')
-    if (!ok) {
+    const validation = validateCaptureFile(f)
+    if (!validation.valid) {
       setStage('error')
-      setError('仅支持 .pcap / .pcapng / .cap')
+      setError(validation.message)
       setFile(null)
       return
     }
@@ -84,11 +84,21 @@ export function Capture() {
         subtitle="上传 PCAP 文件，后端异步解析并提取应用层载荷"
       />
 
-      <div className="grid gap-5 xl:grid-cols-5">
+      <div className="grid min-w-0 gap-5 xl:grid-cols-5">
         <Card className="xl:col-span-3">
           <CardHeader title="上传捕获文件" subtitle="经典 PCAP 格式解析效果最佳" />
           <CardBody>
             <div
+              role="button"
+              tabIndex={0}
+              aria-label="选择或拖入 PCAP 文件"
+              aria-describedby={`${fileInputId}-hint`}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault()
+                  fileInputRef.current?.click()
+                }
+              }}
               onDragOver={(e) => {
                 e.preventDefault()
                 setDragOver(true)
@@ -100,25 +110,29 @@ export function Capture() {
                 acceptFile(e.dataTransfer.files?.[0] ?? null)
               }}
               className={cn(
-                'flex flex-col items-center justify-center rounded-2xl border-2 border-dashed px-6 py-14 transition',
+                'focus-ring flex flex-col items-center justify-center rounded-2xl border-2 border-dashed px-6 py-14 transition',
                 dragOver
-                  ? 'border-teal-500 bg-teal-50'
-                  : 'border-line bg-[#fafbfc] hover:border-teal-300',
+                  ? 'border-[var(--accent)] bg-[var(--accent-soft)]'
+                  : 'border-line bg-[#fafbfc] hover:border-[var(--accent-border)]',
               )}
             >
-              <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-teal-50 text-teal-600">
+              <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--accent-soft)] text-[var(--accent-deep)]">
                 <FileUp className="h-7 w-7" />
               </div>
               <p className="text-sm font-medium text-ink-900">将 PCAP 文件拖到此处</p>
-              <p className="mt-1 text-xs text-muted">支持 .pcap / .cap（推荐）；PCAPNG 请先转换</p>
+              <p id={`${fileInputId}-hint`} className="mt-1 text-center text-xs leading-relaxed text-muted">
+                支持 .pcap / .cap，最大 512 MB；PCAPNG 请先转换
+              </p>
               <label className="mt-5">
                 <input
+                  id={fileInputId}
+                  ref={fileInputRef}
                   type="file"
-                  accept=".pcap,.pcapng,.cap"
+                  accept=".pcap,.cap"
                   className="hidden"
                   onChange={(e) => acceptFile(e.target.files?.[0] ?? null)}
                 />
-                <span className="inline-flex h-9 cursor-pointer items-center rounded-2xl border border-line bg-white px-4 text-sm text-ink-800 shadow-sm hover:bg-ink-50">
+                <span className="inline-flex h-11 cursor-pointer items-center rounded-2xl border border-line bg-white px-4 text-sm text-ink-800 shadow-sm hover:bg-ink-50">
                   选择文件
                 </span>
               </label>
@@ -149,7 +163,8 @@ export function Capture() {
                         setFile(null)
                         setStage('idle')
                       }}
-                      className="text-muted hover:text-ink-800"
+                      className="focus-ring flex h-11 w-11 items-center justify-center rounded-xl text-muted hover:bg-white hover:text-ink-800"
+                      aria-label={`移除文件 ${file.name}`}
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -159,11 +174,16 @@ export function Capture() {
                   <div className="mt-3">
                     <div className="mb-1 flex justify-between text-xs text-muted">
                       <span>{stage === 'uploading' ? '上传中…' : '已提交解析'}</span>
-                      <span className="font-mono text-teal-700">{progress}%</span>
+                      <span className="font-mono text-[var(--accent-deep)]">{progress}%</span>
                     </div>
                     <div className="h-1.5 overflow-hidden rounded-full bg-[#eef1f3]">
                       <div
-                        className="h-full rounded-full bg-gradient-to-r from-teal-500 to-emerald-400"
+                        role="progressbar"
+                        aria-label="上传进度"
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        aria-valuenow={progress}
+                        className="h-full rounded-full bg-gradient-to-r from-[var(--accent)] to-emerald-400"
                         style={{ width: `${progress}%` }}
                       />
                     </div>
@@ -221,7 +241,7 @@ export function Capture() {
                   {(t.status === 'parsing' || t.status === 'extracting') && (
                     <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#eef1f3]">
                       <div
-                        className="h-full rounded-full bg-teal-500"
+                        className="h-full rounded-full bg-[var(--accent)]"
                         style={{ width: `${t.progress}%` }}
                       />
                     </div>

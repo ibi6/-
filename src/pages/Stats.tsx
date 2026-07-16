@@ -13,8 +13,10 @@ import { Card, CardBody, CardHeader } from '../components/ui/Card'
 import { ErrorState, PageLoading } from '../components/ui/Loading'
 import { api, type ApiDashboard, type ApiTask } from '../lib/api'
 import { formatBytes } from '../lib/format'
+import { useTheme } from '../theme/useTheme'
 
 export function Stats() {
+  const { palette } = useTheme()
   const [dash, setDash] = useState<ApiDashboard | null>(null)
   const [tasks, setTasks] = useState<ApiTask[]>([])
   const [loading, setLoading] = useState(true)
@@ -69,12 +71,12 @@ export function Stats() {
             <AreaChart data={dash.timeline}>
               <defs>
                 <linearGradient id="sFlow" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#0d9488" stopOpacity={0.35} />
-                  <stop offset="100%" stopColor="#0d9488" stopOpacity={0} />
+                  <stop offset="0%" stopColor={palette.accent} stopOpacity={0.35} />
+                  <stop offset="100%" stopColor={palette.accent} stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="sPay" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#38bdf8" stopOpacity={0.3} />
-                  <stop offset="100%" stopColor="#38bdf8" stopOpacity={0} />
+                  <stop offset="0%" stopColor={palette.secondary} stopOpacity={0.3} />
+                  <stop offset="100%" stopColor={palette.secondary} stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid stroke="#eef1f3" vertical={false} />
@@ -88,8 +90,8 @@ export function Stats() {
                   fontSize: 12,
                 }}
               />
-              <Area type="monotone" dataKey="packets" name="流量" stroke="#0d9488" fill="url(#sFlow)" strokeWidth={2} />
-              <Area type="monotone" dataKey="payloads" name="载荷" stroke="#38bdf8" fill="url(#sPay)" strokeWidth={2} />
+              <Area type="monotone" dataKey="packets" name="流量" stroke={palette.accent} fill="url(#sFlow)" strokeWidth={2} />
+              <Area type="monotone" dataKey="payloads" name="载荷" stroke={palette.secondary} fill="url(#sPay)" strokeWidth={2} />
             </AreaChart>
           </ResponsiveContainer>
         </CardBody>

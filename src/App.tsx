@@ -1,17 +1,19 @@
+import { lazy } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AppShell } from './components/layout/AppShell'
-import { Dashboard } from './pages/Dashboard'
-import { Capture } from './pages/Capture'
-import { Payloads } from './pages/Payloads'
-import { PayloadDetail } from './pages/PayloadDetail'
-import { Protocols } from './pages/Protocols'
-import { Stats } from './pages/Stats'
-import { Features } from './pages/Features'
-import { Alerts } from './pages/Alerts'
-import { Settings } from './pages/Settings'
-import { Logs } from './pages/Logs'
-import { Help } from './pages/Help'
-import { TaskDetail } from './pages/TaskDetail'
+
+const Dashboard = lazy(() => import('./pages/Dashboard').then((module) => ({ default: module.Dashboard })))
+const Capture = lazy(() => import('./pages/Capture').then((module) => ({ default: module.Capture })))
+const Payloads = lazy(() => import('./pages/Payloads').then((module) => ({ default: module.Payloads })))
+const PayloadDetail = lazy(() => import('./pages/PayloadDetail').then((module) => ({ default: module.PayloadDetail })))
+const Protocols = lazy(() => import('./pages/Protocols').then((module) => ({ default: module.Protocols })))
+const Stats = lazy(() => import('./pages/Stats').then((module) => ({ default: module.Stats })))
+const Features = lazy(() => import('./pages/Features').then((module) => ({ default: module.Features })))
+const Alerts = lazy(() => import('./pages/Alerts').then((module) => ({ default: module.Alerts })))
+const Settings = lazy(() => import('./pages/Settings').then((module) => ({ default: module.Settings })))
+const Logs = lazy(() => import('./pages/Logs').then((module) => ({ default: module.Logs })))
+const Help = lazy(() => import('./pages/Help').then((module) => ({ default: module.Help })))
+const TaskDetail = lazy(() => import('./pages/TaskDetail').then((module) => ({ default: module.TaskDetail })))
 
 export default function App() {
   return (

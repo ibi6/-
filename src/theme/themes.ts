@@ -101,8 +101,8 @@ export const themes: ThemeDef[] = [
       '--title': '#7ee9f7',
       '--accent': '#22d3ee',
       '--accent-2': '#67e8f9',
-      '--accent-deep': '#0891b2',
-      '--accent-hover': '#06b6d4',
+      '--accent-deep': '#0e7490',
+      '--accent-hover': '#155e75',
       '--accent-soft': 'rgba(34, 211, 238, 0.15)',
       '--accent-glow': 'rgba(34, 211, 238, 0.35)',
       '--secondary': '#34d399',
@@ -370,11 +370,33 @@ export function getTheme(id: ThemeId): ThemeDef {
   return themes.find((t) => t.id === id) ?? themes[0]
 }
 
-export function applyThemeVars(id: ThemeId) {
+const contrastByTheme: Record<ThemeId, string> = {
+  blue: '#ffffff',
+  cyan: '#ffffff',
+  violet: '#ffffff',
+  amber: '#ffffff',
+  rose: '#ffffff',
+  emerald: '#ffffff',
+  slate: '#ffffff',
+}
+
+/** 返回页面交互组件实际消费的主题变量，不依赖 DOM，便于测试。 */
+export function getThemeCssVars(id: ThemeId): Record<string, string> {
   const theme = getTheme(id)
+  const accent = theme.vars['--accent'] ?? theme.swatch
+  return {
+    ...theme.vars,
+    '--accent': theme.swatch,
+    '--accent-border': `color-mix(in srgb, ${accent} 30%, transparent)`,
+    '--accent-ring': `color-mix(in srgb, ${accent} 22%, transparent)`,
+    '--accent-contrast': contrastByTheme[theme.id],
+  }
+}
+
+export function applyThemeVars(id: ThemeId) {
   const root = document.documentElement
   root.setAttribute('data-theme', id)
-  Object.entries(theme.vars).forEach(([k, v]) => {
+  Object.entries(getThemeCssVars(id)).forEach(([k, v]) => {
     root.style.setProperty(k, v)
   })
 }

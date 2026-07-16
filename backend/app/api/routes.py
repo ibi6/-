@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-import shutil
 from datetime import datetime
 from pathlib import Path
+from uuid import uuid4
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
+import aiofiles
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -27,6 +28,64 @@ from app.services.task_runner import start_parse_async, write_log
 
 router = APIRouter(prefix="/api/v1")
 settings = get_settings()
+UPLOAD_CHUNK_BYTES = 1024 * 1024
+PCAP_MAGIC_VALUES = {
+    bytes.fromhex("d4c3b2a1"),
+    bytes.fromhex("a1b2c3d4"),
+    bytes.fromhex("4d3cb2a1"),
+    bytes.fromhex("a1b23c4d"),
+}
+
+
+def _safe_upload_name(raw_name: str | None) -> str:
+    """Strip client-supplied paths/control characters and cap the stored filename."""
+    normalized = (raw_name or "capture.pcap").replace("\\", "/")
+    filename = "".join(char for char in normalized.rsplit("/", 1)[-1] if char.isprintable()).strip()
+    filename = filename or "capture.pcap"
+    suffix = Path(filename).suffix
+    stem = filename[: -len(suffix)] if suffix else filename
+    return f"{stem[: 255 - len(suffix)]}{suffix}"
+
+
+def _effective_max_upload_mb(db: Session) -> int:
+    """Apply the saved UI limit without exceeding the process-level safety ceiling."""
+    row = db.get(SystemConfig, "max_upload_mb")
+    try:
+        configured = int(row.value) if row else settings.max_upload_mb
+    except (TypeError, ValueError):
+        configured = settings.max_upload_mb
+    return max(1, min(configured, settings.max_upload_mb))
+
+
+async def _persist_pcap_upload(file: UploadFile, destination: Path, max_bytes: int) -> int:
+    """Validate the PCAP header and stream the upload to disk with bounded memory."""
+    total = 0
+    try:
+        first_chunk = await file.read(UPLOAD_CHUNK_BYTES)
+        if len(first_chunk) < 24:
+            raise HTTPException(400, "文件过小，不是有效 PCAP")
+        if first_chunk[:4] not in PCAP_MAGIC_VALUES:
+            raise HTTPException(400, "文件头不是有效的经典 PCAP")
+        total = len(first_chunk)
+        if total > max_bytes:
+            raise HTTPException(413, f"文件超过 {max_bytes // (1024 * 1024)}MB 限制")
+
+        async with aiofiles.open(destination, "xb") as target:
+            await target.write(first_chunk)
+            while True:
+                chunk = await file.read(UPLOAD_CHUNK_BYTES)
+                if not chunk:
+                    break
+                total += len(chunk)
+                if total > max_bytes:
+                    raise HTTPException(413, f"文件超过 {max_bytes // (1024 * 1024)}MB 限制")
+                await target.write(chunk)
+        return total
+    except Exception:
+        destination.unlink(missing_ok=True)
+        raise
+    finally:
+        await file.close()
 
 
 @router.get("/health")
@@ -121,38 +180,32 @@ def get_task(task_id: int, db: Session = Depends(get_db)) -> TaskOut:
 @router.post("/tasks/upload", response_model=TaskOut)
 async def upload_task(
     file: UploadFile = File(...),
-    name: str | None = None,
+    name: str | None = Form(default=None, min_length=1, max_length=120),
     db: Session = Depends(get_db),
 ) -> TaskOut:
-    filename = file.filename or "capture.pcap"
+    filename = _safe_upload_name(file.filename)
     lower = filename.lower()
     if not (lower.endswith(".pcap") or lower.endswith(".cap")):
         if lower.endswith(".pcapng"):
             raise HTTPException(400, "当前版本请将 PCAPNG 另存为经典 PCAP 后再上传")
         raise HTTPException(400, "仅支持 .pcap / .cap 文件")
 
-    data = await file.read()
-    max_bytes = settings.max_upload_mb * 1024 * 1024
-    if len(data) > max_bytes:
-        raise HTTPException(400, f"文件超过 {settings.max_upload_mb}MB 限制")
-    if len(data) < 24:
-        raise HTTPException(400, "文件过小，不是有效 PCAP")
-
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-    safe = f"{datetime.utcnow().strftime('%Y%m%d%H%M%S')}_{Path(filename).name}"
+    safe = f"{datetime.utcnow().strftime('%Y%m%d%H%M%S')}_{uuid4().hex[:12]}_{filename}"
     dest = UPLOAD_DIR / safe
-    dest.write_bytes(data)
+    max_upload_mb = _effective_max_upload_mb(db)
+    file_size = await _persist_pcap_upload(file, dest, max_upload_mb * 1024 * 1024)
 
     task = CaptureTask(
-        name=name or Path(filename).stem,
+        name=(name or Path(filename).stem).strip() or Path(filename).stem,
         filename=filename,
         file_path=str(dest),
-        file_size=len(data),
+        file_size=file_size,
         status="pending",
         progress=0,
     )
     db.add(task)
-    write_log(db, "upload", f"上传文件 {filename} ({len(data)} bytes)")
+    write_log(db, "upload", f"上传文件 {filename} ({file_size} bytes)")
     db.commit()
     db.refresh(task)
     start_parse_async(task.id)

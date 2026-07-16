@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import struct
 from datetime import datetime
 from pathlib import Path
@@ -9,7 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.config import UPLOAD_DIR
-from app.models.entities import CaptureTask, OpLog, SystemConfig
+from app.models.entities import CaptureTask, SystemConfig
 from app.services.task_runner import run_parse_task, write_log
 
 

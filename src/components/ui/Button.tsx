@@ -1,11 +1,11 @@
 import { cn } from '../../lib/cn'
+import type { ButtonHTMLAttributes } from 'react'
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger'
 type Size = 'sm' | 'md' | 'lg'
 
 const variants: Record<Variant, string> = {
-  primary:
-    'bg-teal-600 text-white shadow-sm shadow-teal-700/15 hover:bg-teal-700 focus-visible:ring-teal-500/30',
+  primary: 'button-primary',
   secondary:
     'border border-line bg-white text-ink-800 hover:bg-ink-50 focus-visible:ring-ink-500/15',
   ghost: 'bg-transparent text-ink-600 hover:bg-black/[0.04] hover:text-ink-900',
@@ -13,9 +13,14 @@ const variants: Record<Variant, string> = {
 }
 
 const sizes: Record<Size, string> = {
-  sm: 'h-8 px-3.5 text-xs rounded-2xl gap-1.5',
-  md: 'h-10 px-4 text-sm rounded-2xl gap-2',
-  lg: 'h-11 px-5 text-sm rounded-2xl gap-2',
+  sm: 'h-11 px-3.5 text-xs rounded-2xl gap-1.5',
+  md: 'h-11 px-4 text-sm rounded-2xl gap-2',
+  lg: 'h-12 px-5 text-sm rounded-2xl gap-2',
+}
+
+type ButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'size'> & {
+  variant?: Variant
+  size?: Size
 }
 
 export function Button({
@@ -25,23 +30,15 @@ export function Button({
   size = 'md',
   disabled,
   type = 'button',
-  onClick,
-}: {
-  children: React.ReactNode
-  className?: string
-  variant?: Variant
-  size?: Size
-  disabled?: boolean
-  type?: 'button' | 'submit'
-  onClick?: () => void
-}) {
+  ...props
+}: ButtonProps) {
   return (
     <button
       type={type}
       disabled={disabled}
-      onClick={onClick}
+      {...props}
       className={cn(
-        'inline-flex items-center justify-center font-medium transition focus-visible:outline-none focus-visible:ring-4 disabled:cursor-not-allowed disabled:opacity-50',
+        'inline-flex items-center justify-center font-medium transition duration-200 focus-visible:outline-none focus-visible:ring-4 disabled:cursor-not-allowed disabled:opacity-50',
         variants[variant],
         sizes[size],
         className,

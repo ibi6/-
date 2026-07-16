@@ -59,7 +59,7 @@ export function Logs() {
                     <td className={`px-4 py-2.5 font-semibold ${levelColor[l.level] ?? 'text-ink-600'}`}>
                       {l.level}
                     </td>
-                    <td className="px-4 py-2.5 text-teal-700">{l.module}</td>
+                    <td className="px-4 py-2.5 text-[var(--accent-deep)]">{l.module}</td>
                     <td className="px-5 py-2.5 text-ink-700">{l.message}</td>
                   </tr>
                 ))}

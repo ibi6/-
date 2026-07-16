@@ -44,6 +44,104 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+:root {
+  --accent: #2f80ed;
+  --accent-2: #56a0ff;
+  --accent-deep: #1a5fcc;
+  --accent-hover: #1a6dff;
+  --accent-soft: rgba(47, 128, 237, 0.12);
+  --accent-border: rgba(47, 128, 237, 0.3);
+  --accent-ring: rgba(47, 128, 237, 0.22);
+  --accent-contrast: #ffffff;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: #0b1220;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.focus-ring:focus-visible,
+.field:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px var(--accent-ring);
+}
+
+.field {
+  width: 100%;
+  height: 2.75rem;
+  border: 1px solid #e8eceb;
+  border-radius: 1rem;
+  background: #fff;
+  padding: 0 0.875rem;
+  color: #111827;
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.field:hover {
+  border-color: var(--accent-border);
+}
+
+.field:focus-visible {
+  border-color: var(--accent);
+}
+
+.theme-checkbox {
+  accent-color: var(--accent-deep);
+}
+
+.loading-spinner {
+  border-color: var(--accent);
+  border-top-color: transparent;
+  filter: drop-shadow(0 4px 8px var(--accent-ring));
+}
+
+.button-primary {
+  background: var(--accent-deep);
+  color: var(--accent-contrast);
+  box-shadow: 0 10px 24px -14px var(--accent);
+}
+
+.button-primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px -14px var(--accent);
+}
+
+.button-primary:focus-visible {
+  --tw-ring-color: var(--accent-ring);
+}
+
+.brand-mark {
+  background: linear-gradient(145deg, var(--accent-2), var(--accent-deep));
+  color: var(--accent-contrast);
+  box-shadow: 0 12px 30px -14px var(--accent);
+}
+
+.brand-avatar {
+  background: linear-gradient(145deg, var(--accent-2), var(--accent-deep));
+  color: var(--accent-contrast);
+}
+
+.theme-option-active,
+.theme-grid-active {
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
+}
+
+.theme-grid-active {
+  box-shadow: 0 0 0 1px var(--accent-border);
+}
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -73,9 +171,12 @@ body {
 /* 浅色工作台背景 */
 .bg-mesh {
   background:
-    radial-gradient(ellipse 70% 45% at 15% -10%, rgba(13, 148, 136, 0.07), transparent 55%),
+    linear-gradient(rgba(15, 23, 36, 0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 23, 36, 0.018) 1px, transparent 1px),
+    radial-gradient(ellipse 70% 45% at 15% -10%, var(--accent-soft), transparent 55%),
     radial-gradient(ellipse 50% 35% at 90% 0%, rgba(15, 23, 36, 0.04), transparent 50%),
     linear-gradient(180deg, #f6f8f7 0%, #f0f3f2 100%);
+  background-size: 32px 32px, 32px 32px, auto, auto, auto;
 }
 
 /* 白卡片 */
@@ -94,9 +195,15 @@ body {
 }
 
 .nav-active {
-  background: linear-gradient(90deg, rgba(36, 50, 71, 0.95), rgba(30, 42, 60, 0.75));
+  background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 23%, #172337), rgba(30, 42, 60, 0.76));
   color: #fff;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  box-shadow:
+    inset 3px 0 0 var(--accent-2),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.nav-active .nav-icon {
+  color: var(--accent-2);
 }
 
 .panel {
@@ -123,6 +230,31 @@ body {
     0 8px 24px -12px rgba(15, 23, 36, 0.08);
 }
 
+.metric-card-primary {
+  position: relative;
+  overflow: hidden;
+  border-color: color-mix(in srgb, var(--accent) 28%, #172337);
+  background:
+    radial-gradient(circle at 88% 10%, var(--accent-soft), transparent 36%),
+    linear-gradient(145deg, #101a2b 0%, #17253b 100%);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 36, 0.2),
+    0 18px 36px -24px var(--accent);
+}
+
+.metric-card-primary::after {
+  content: '';
+  position: absolute;
+  right: -32px;
+  bottom: -56px;
+  width: 150px;
+  height: 150px;
+  border: 1px solid var(--accent-border);
+  border-radius: 999px;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
 .hex-byte:hover {
   background: rgba(13, 148, 136, 0.12);
 }
@@ -140,5 +272,16 @@ body {
   }
   100% {
     background-position: 200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

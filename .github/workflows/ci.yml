@@ -26,6 +26,8 @@ jobs:
           pip install -r requirements.txt -r requirements-dev.txt
       - name: Pytest
         run: pytest -q
+      - name: Ruff
+        run: ruff check app tests
 
   frontend:
     name: Frontend build
@@ -38,6 +40,8 @@ jobs:
           cache: npm
       - name: Install
         run: npm ci
+      - name: Test
+        run: npm test
       - name: Build
         run: npm run build
       - name: Lint

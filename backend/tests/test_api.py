@@ -7,6 +7,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app.api import routes as routes_mod
+from app.api.routes import _safe_upload_name
 from app.db.session import Base, get_db
 from app.main import app
 from app.services import task_runner
@@ -54,6 +55,26 @@ def test_health(client: TestClient):
     assert r.json()["status"] == "ok"
 
 
+def test_safe_upload_name_removes_control_characters_and_preserves_extension():
+    assert _safe_upload_name("C:\\fakepath\\cap\r\nTURE.pcap") == "capTURE.pcap"
+    normalized = _safe_upload_name(f"{'a' * 300}.pcap")
+    assert len(normalized) <= 255
+    assert normalized.endswith(".pcap")
+
+
+def test_cors_allows_known_frontend_without_credentials(client: TestClient):
+    r = client.options(
+        "/api/v1/health",
+        headers={
+            "Origin": "http://127.0.0.1:5173",
+            "Access-Control-Request-Method": "GET",
+        },
+    )
+    assert r.status_code == 200
+    assert r.headers["access-control-allow-origin"] == "http://127.0.0.1:5173"
+    assert "access-control-allow-credentials" not in r.headers
+
+
 def test_upload_and_list(client: TestClient, tmp_path: Path):
     pcap = tmp_path / "u.pcap"
     _build_demo_pcap(pcap)
@@ -69,3 +90,62 @@ def test_upload_and_list(client: TestClient, tmp_path: Path):
     assert t["payload_count"] >= 1
     payloads = client.get("/api/v1/payloads").json()
     assert len(payloads) >= 1
+
+
+def test_upload_rejects_invalid_pcap_magic_and_cleans_file(client: TestClient, tmp_path: Path):
+    r = client.post(
+        "/api/v1/tasks/upload",
+        files={"file": ("fake.pcap", b"not-a-pcap-file" * 4, "application/octet-stream")},
+    )
+    assert r.status_code == 400
+    assert "PCAP" in r.json()["detail"]
+    assert list((tmp_path / "uploads").iterdir()) == []
+
+
+def test_upload_normalizes_untrusted_filename(client: TestClient, tmp_path: Path):
+    pcap = tmp_path / "safe.pcap"
+    _build_demo_pcap(pcap)
+    with pcap.open("rb") as f:
+        r = client.post(
+            "/api/v1/tasks/upload",
+            files={"file": ("../escape.pcap", f, "application/vnd.tcpdump.pcap")},
+        )
+    assert r.status_code == 200, r.text
+    assert r.json()["filename"] == "escape.pcap"
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        {
+            "max_upload_mb": 0,
+            "auto_extract": True,
+            "deep_inspection": True,
+            "retain_days": 30,
+            "hex_columns": 16,
+            "storage_path": "./uploads",
+            "enabled_protocols": ["HTTP"],
+        },
+        {
+            "max_upload_mb": 128,
+            "auto_extract": True,
+            "deep_inspection": True,
+            "retain_days": 30,
+            "hex_columns": 12,
+            "storage_path": "./uploads",
+            "enabled_protocols": ["HTTP"],
+        },
+        {
+            "max_upload_mb": 128,
+            "auto_extract": True,
+            "deep_inspection": True,
+            "retain_days": 30,
+            "hex_columns": 16,
+            "storage_path": "./uploads",
+            "enabled_protocols": ["UNKNOWN"],
+        },
+    ],
+)
+def test_settings_reject_invalid_values(client: TestClient, body: dict[str, object]):
+    r = client.put("/api/v1/settings", json=body)
+    assert r.status_code == 422, r.text

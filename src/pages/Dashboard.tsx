@@ -11,7 +11,6 @@ import {
 import { PageHeader } from '../components/PageHeader'
 import { Card, CardBody, CardHeader } from '../components/ui/Card'
 import { ProtocolBadge, StatusBadge } from '../components/ui/Badge'
-import { Button } from '../components/ui/Button'
 import { ErrorState, PageLoading } from '../components/ui/Loading'
 import { api, type ApiDashboard } from '../lib/api'
 import { formatBytes, formatTime } from '../lib/format'
@@ -33,7 +32,7 @@ const levelLabel: Record<string, string> = {
   critical: '严重',
 }
 
-const barColors = ['bg-sky-500', 'bg-emerald-500', 'bg-amber-500', 'bg-violet-500', 'bg-teal-600']
+const barColors = ['bg-[var(--accent)]', 'bg-emerald-500', 'bg-amber-500', 'bg-violet-500', 'bg-sky-500']
 
 export function Dashboard() {
   const [data, setData] = useState<ApiDashboard | null>(null)
@@ -61,7 +60,7 @@ export function Dashboard() {
     return (
       <ErrorState
         title="无法连接后端"
-        message={error || '请先启动 backend：uvicorn app.main:app --port 8000'}
+        message={error || '请先启动 backend：uvicorn app.main:app --port 8001'}
         onRetry={load}
       />
     )
@@ -84,8 +83,8 @@ export function Dashboard() {
       value: data.payload_total.toLocaleString(),
       hint: `较昨日 ↑ ${data.payload_trend}%`,
       icon: Layers,
-      iconBg: 'bg-teal-50',
-      iconColor: 'text-teal-600',
+      iconBg: 'bg-[var(--accent-soft)]',
+      iconColor: 'text-[var(--accent-deep)]',
     },
     {
       label: '识别应用协议',
@@ -118,41 +117,47 @@ export function Dashboard() {
       <PageHeader
         title="你好，管理员"
         subtitle="数据来自 Python 后端解析结果；可上传真实 PCAP 验证。"
-        actions={
-          <Link to="/capture">
-            <Button size="sm" className="rounded-full">
-              上传流量
-            </Button>
-          </Link>
-        }
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        {metrics.map((m) => (
-          <Card key={m.label} className="p-5">
+      <div className="grid min-w-0 gap-4 sm:grid-cols-2 xl:grid-cols-6">
+        {metrics.map((m, index) => {
+          const primary = index === 0
+          return (
+          <Card
+            key={m.label}
+            className={cn(
+              'p-5 transition duration-200 hover:-translate-y-0.5',
+              primary ? 'metric-card-primary sm:col-span-2 xl:col-span-2' : 'xl:col-span-1',
+            )}
+          >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <div className="text-[12px] font-medium text-muted">{m.label}</div>
-                <div className="mt-2 truncate text-[24px] font-semibold leading-none text-ink-900">
+                <div className={cn('text-[12px] font-medium', primary ? 'text-white/55' : 'text-muted')}>
+                  {m.label}
+                </div>
+                <div className={cn('mt-2 truncate text-[26px] font-semibold leading-none', primary ? 'text-white' : 'text-ink-900')}>
                   {m.value}
                 </div>
-                <div className="mt-2.5 text-[11px] text-muted">{m.hint}</div>
+                <div className={cn('mt-2.5 text-[11px]', primary ? 'text-white/55' : 'text-muted')}>
+                  {m.hint}
+                </div>
               </div>
               <div
                 className={cn(
                   'flex h-10 w-10 shrink-0 items-center justify-center rounded-full',
-                  m.iconBg,
-                  m.iconColor,
+                  primary ? 'bg-white/10 text-[var(--accent-2)] ring-1 ring-white/10' : m.iconBg,
+                  primary ? '' : m.iconColor,
                 )}
               >
                 <m.icon className="h-[18px] w-[18px]" />
               </div>
             </div>
           </Card>
-        ))}
+          )
+        })}
       </div>
 
-      <div className="mt-5 grid gap-5 xl:grid-cols-5">
+      <div className="mt-5 grid min-w-0 gap-5 xl:grid-cols-5">
         <Card className="xl:col-span-3">
           <CardHeader title="协议流量分布" subtitle="按会话占比" />
           <CardBody className="space-y-5">
@@ -183,7 +188,7 @@ export function Dashboard() {
           <CardHeader
             title="最新告警"
             action={
-              <Link to="/alerts" className="inline-flex items-center gap-0.5 text-xs font-medium text-teal-700">
+              <Link to="/alerts" className="inline-flex items-center gap-0.5 text-xs font-medium text-[var(--accent-deep)]">
                 全部 <ArrowUpRight className="h-3.5 w-3.5" />
               </Link>
             }
@@ -213,18 +218,20 @@ export function Dashboard() {
         </Card>
       </div>
 
-      <div className="mt-5 grid gap-5 lg:grid-cols-2">
+      <div className="mt-5 grid min-w-0 gap-5 lg:grid-cols-2">
         <Card>
           <CardHeader
             title="最近任务"
             action={
-              <Link to="/capture" className="inline-flex items-center gap-0.5 text-xs font-medium text-teal-700">
+              <Link to="/capture" className="inline-flex items-center gap-0.5 text-xs font-medium text-[var(--accent-deep)]">
                 流量捕获 <ArrowUpRight className="h-3.5 w-3.5" />
               </Link>
             }
           />
           <CardBody className="space-y-1 !pt-2">
-            {data.recent_tasks.map((t) => (
+            {data.recent_tasks.length === 0 ? (
+              <p className="px-2.5 py-8 text-center text-sm text-muted">暂无解析任务</p>
+            ) : data.recent_tasks.map((t) => (
               <Link
                 key={t.id}
                 to={`/tasks/${t.id}`}
@@ -252,13 +259,16 @@ export function Dashboard() {
           <CardHeader
             title="最新载荷提取"
             action={
-              <Link to="/payloads" className="inline-flex items-center gap-0.5 text-xs font-medium text-teal-700">
+              <Link to="/payloads" className="inline-flex items-center gap-0.5 text-xs font-medium text-[var(--accent-deep)]">
                 载荷中心 <ArrowUpRight className="h-3.5 w-3.5" />
               </Link>
             }
           />
           <CardBody className="!p-0">
-            <div className="overflow-x-auto">
+            {data.recent_payloads.length === 0 ? (
+              <p className="px-5 py-10 text-center text-sm text-muted">暂无载荷记录</p>
+            ) : null}
+            <div className="hidden max-w-full overflow-x-auto sm:block">
               <table className="w-full min-w-[480px] text-left text-[12px]">
                 <thead>
                   <tr className="border-b border-black/[0.04] text-muted">
@@ -275,7 +285,7 @@ export function Dashboard() {
                         {p.timestamp ? formatTime(p.timestamp) : '—'}
                       </td>
                       <td className="max-w-[200px] truncate px-3 py-2.5">
-                        <Link to={`/payloads/${p.id}`} className="text-ink-800 hover:text-teal-700">
+                        <Link to={`/payloads/${p.id}`} className="text-ink-800 hover:text-[var(--accent-deep)]">
                           {p.summary}
                         </Link>
                       </td>
@@ -287,6 +297,23 @@ export function Dashboard() {
                   ))}
                 </tbody>
               </table>
+            </div>
+            <div className="divide-y divide-black/[0.04] sm:hidden">
+              {data.recent_payloads.map((p) => (
+                <Link
+                  key={p.id}
+                  to={`/payloads/${p.id}`}
+                  className="flex min-w-0 items-center justify-between gap-3 px-4 py-3.5 transition hover:bg-ink-50"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-[13px] font-medium text-ink-900">{p.summary}</p>
+                    <p className="mt-1 font-mono text-[11px] text-muted">
+                      {p.timestamp ? formatTime(p.timestamp) : '—'} · {formatBytes(p.size)}
+                    </p>
+                  </div>
+                  <ProtocolBadge protocol={p.protocol} />
+                </Link>
+              ))}
             </div>
           </CardBody>
         </Card>

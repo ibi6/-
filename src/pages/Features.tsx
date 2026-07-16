@@ -52,7 +52,7 @@ export function Features() {
         {features.map((f) => (
           <Card key={f.title} className="p-5">
             <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-teal-50 text-teal-600">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--accent-soft)] text-[var(--accent-deep)]">
                 <f.icon className="h-5 w-5" />
               </div>
               <div>
@@ -89,7 +89,7 @@ export function Features() {
               <tbody>
                 {sampleRows.map((r) => (
                   <tr key={r.name} className="border-b border-black/[0.03] last:border-0">
-                    <td className="px-5 py-2.5 font-mono text-teal-700">{r.name}</td>
+                    <td className="px-5 py-2.5 font-mono text-[var(--accent-deep)]">{r.name}</td>
                     <td className="px-4 py-2.5 font-mono text-ink-800">{r.value}</td>
                     <td className="px-5 py-2.5 text-muted">{r.type}</td>
                   </tr>

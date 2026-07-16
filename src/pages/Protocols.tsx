@@ -16,10 +16,11 @@ import { Card, CardBody, CardHeader } from '../components/ui/Card'
 import { ErrorState, PageLoading } from '../components/ui/Loading'
 import { api, type ApiProtocolStat, type ApiSession } from '../lib/api'
 import { formatBytes } from '../lib/format'
-
-const colors = ['#0d9488', '#38bdf8', '#f59e0b', '#8b5cf6', '#f43f5e', '#10b981', '#64748b', '#06b6d4']
+import { useTheme } from '../theme/useTheme'
 
 export function Protocols() {
+  const { palette } = useTheme()
+  const colors = palette.chart
   const [stats, setStats] = useState<ApiProtocolStat[]>([])
   const [sessions, setSessions] = useState<ApiSession[]>([])
   const [loading, setLoading] = useState(true)

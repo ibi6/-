@@ -96,7 +96,7 @@ Logo：[`public/logo.svg`](public/logo.svg) · Banner：[`docs/assets/banner.svg
 
 ### 方式 A：本地开发（推荐）
 
-**环境：** Python 3.11+ · Node 20+
+**环境：** Python 3.11+ · Node 22.12+
 
 ```bash
 # 1）后端
@@ -104,6 +104,7 @@ cd backend
 python -m venv .venv
 # Windows
 .\.venv\Scripts\Activate.ps1
+Copy-Item .env.example .env  # 可选：需要自定义数据库、上传限制或 CORS 时使用
 pip install -r requirements.txt
 uvicorn app.main:app --reload --host 127.0.0.1 --port 8001
 
@@ -231,8 +232,15 @@ A：适合 **实验室 / 内网 / 教学**。多用户生产环境请先加鉴�
 - [行为准则](CODE_OF_CONDUCT.md)
 
 ```bash
-cd backend && pip install -r requirements-dev.txt && pytest -q
+npm ci
+npm test
+npm run lint
 npm run build
+
+cd backend
+pip install -r requirements-dev.txt
+pytest -q
+ruff check app tests
 ```
 
 ---

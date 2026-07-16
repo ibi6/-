@@ -7,7 +7,7 @@ export function Card({
   className?: string
   children: React.ReactNode
 }) {
-  return <div className={cn('card-surface', className)}>{children}</div>
+  return <div className={cn('card-surface min-w-0', className)}>{children}</div>
 }
 
 export function CardHeader({

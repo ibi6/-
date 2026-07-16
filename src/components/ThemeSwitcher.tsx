@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Check, Palette } from 'lucide-react'
-import { useTheme } from '../theme/ThemeContext'
+import { useTheme } from '../theme/useTheme'
 import { cn } from '../lib/cn'
 import type { ThemeId } from '../theme/themes'
 
@@ -23,7 +23,9 @@ export function ThemeSwitcher() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex h-9 items-center gap-2 rounded-xl border border-line bg-white px-2.5 text-ink-500 shadow-sm transition hover:text-ink-800"
+        className="focus-ring flex h-11 min-w-11 items-center justify-center gap-2 rounded-2xl border border-line bg-white px-3 text-ink-500 shadow-sm transition hover:-translate-y-0.5 hover:text-ink-800"
+        aria-label="切换强调色"
+        aria-expanded={open}
         title="切换强调色"
       >
         <Palette className="h-4 w-4" />
@@ -49,8 +51,8 @@ export function ThemeSwitcher() {
                   setOpen(false)
                 }}
                 className={cn(
-                  'flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-left transition',
-                  themeId === t.id ? 'bg-teal-50' : 'hover:bg-ink-50',
+                  'focus-ring flex min-h-11 w-full items-center gap-3 rounded-xl px-2.5 py-2 text-left transition',
+                  themeId === t.id ? 'theme-option-active' : 'hover:bg-ink-50',
                 )}
               >
                 <span
@@ -61,7 +63,7 @@ export function ThemeSwitcher() {
                   <p className="text-[13px] font-medium text-ink-900">{t.name}</p>
                   <p className="truncate text-[11px] text-muted">{t.desc}</p>
                 </div>
-                {themeId === t.id && <Check className="h-4 w-4 text-teal-600" />}
+                {themeId === t.id && <Check className="h-4 w-4 text-[var(--accent-deep)]" />}
               </button>
             ))}
           </div>
@@ -82,11 +84,12 @@ export function ThemeGrid() {
             key={t.id}
             type="button"
             onClick={() => setTheme(t.id)}
+            aria-pressed={active}
             className={cn(
-              'flex flex-col items-start rounded-2xl border p-4 text-left transition',
+              'focus-ring flex min-h-11 flex-col items-start rounded-2xl border p-4 text-left transition',
               active
-                ? 'border-teal-500 bg-teal-50/60 shadow-[0_0_0_1px_rgba(13,148,136,0.3)]'
-                : 'border-line bg-white hover:border-teal-200',
+                ? 'theme-grid-active'
+                : 'border-line bg-white hover:border-[var(--accent-border)]',
             )}
           >
             <div className="mb-3 flex w-full items-center justify-between">
@@ -103,7 +106,7 @@ export function ThemeGrid() {
                 </div>
               </div>
               {active && (
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-teal-600 text-white">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--accent-deep)] text-[var(--accent-contrast)]">
                   <Check className="h-3.5 w-3.5" />
                 </span>
               )}

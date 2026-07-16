@@ -1,9 +1,22 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+ProtocolName = Literal[
+    "HTTP",
+    "HTTPS",
+    "DNS",
+    "FTP",
+    "SMTP",
+    "TLS",
+    "TCP",
+    "UDP",
+    "MQTT",
+    "WebSocket",
+]
 
 
 class TaskOut(BaseModel):
@@ -18,7 +31,7 @@ class TaskOut(BaseModel):
     packet_count: int
     session_count: int
     payload_count: int
-    protocols: list[str] = []
+    protocols: list[str] = Field(default_factory=list)
     error_message: str | None = None
     duration_ms: int = 0
     created_at: datetime | None = None
@@ -40,7 +53,7 @@ class SessionOut(BaseModel):
     status: str
     start_time: datetime | None = None
     end_time: datetime | None = None
-    payload_ids: list[int] = []
+    payload_ids: list[int] = Field(default_factory=list)
 
 
 class PayloadOut(BaseModel):
@@ -56,8 +69,8 @@ class PayloadOut(BaseModel):
     preview: str
     hex_sample: str
     ascii_sample: str
-    metadata: dict[str, Any] = {}
-    tags: list[str] = []
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    tags: list[str] = Field(default_factory=list)
     severity: str
     timestamp: datetime | None = None
 
@@ -97,11 +110,11 @@ class DashboardOut(BaseModel):
     payload_trend: float = 0
     protocol_trend: int = 0
     anomaly_trend: float = 0
-    protocol_stats: list[ProtocolStatOut] = []
-    recent_tasks: list[TaskOut] = []
-    recent_payloads: list[PayloadOut] = []
-    recent_alerts: list[AlertOut] = []
-    timeline: list[dict[str, Any]] = []
+    protocol_stats: list[ProtocolStatOut] = Field(default_factory=list)
+    recent_tasks: list[TaskOut] = Field(default_factory=list)
+    recent_payloads: list[PayloadOut] = Field(default_factory=list)
+    recent_alerts: list[AlertOut] = Field(default_factory=list)
+    timeline: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class Message(BaseModel):
@@ -110,10 +123,18 @@ class Message(BaseModel):
 
 
 class SettingsOut(BaseModel):
-    max_upload_mb: int
+    max_upload_mb: int = Field(ge=1, le=512)
     auto_extract: bool
     deep_inspection: bool
-    retain_days: int
-    hex_columns: int
-    storage_path: str
-    enabled_protocols: list[str]
+    retain_days: int = Field(ge=1, le=365)
+    hex_columns: Literal[8, 16, 32]
+    storage_path: str = Field(min_length=1, max_length=260)
+    enabled_protocols: list[ProtocolName] = Field(min_length=1)
+
+    @field_validator("enabled_protocols")
+    @classmethod
+    def unique_protocols(cls, value: list[ProtocolName]) -> list[ProtocolName]:
+        """Reject duplicates so persisted configuration remains deterministic."""
+        if len(value) != len(set(value)):
+            raise ValueError("enabled_protocols 不能重复")
+        return value

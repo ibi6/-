@@ -26,6 +26,7 @@ export function PayloadDetail() {
   const [task, setTask] = useState<ApiTask | null>(null)
   const [tab, setTab] = useState<Tab>('preview')
   const [copied, setCopied] = useState(false)
+  const [copyError, setCopyError] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
 
@@ -55,9 +56,14 @@ export function PayloadDetail() {
   }
 
   const copyPreview = async () => {
-    await navigator.clipboard.writeText(payload.preview)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 1500)
+    setCopyError('')
+    try {
+      await navigator.clipboard.writeText(payload.preview)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1500)
+    } catch {
+      setCopyError('复制失败，请选择预览内容后手动复制。')
+    }
   }
 
   const tabs: { key: Tab; label: string }[] = [
@@ -97,7 +103,13 @@ export function PayloadDetail() {
         ))}
       </div>
 
-      <div className="mb-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {copyError ? (
+        <div role="alert" className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          {copyError}
+        </div>
+      ) : null}
+
+      <div className="mb-5 grid min-w-0 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[
           { label: '载荷 ID', value: String(payload.id) },
           { label: 'Content-Type', value: payload.content_type },
@@ -114,17 +126,27 @@ export function PayloadDetail() {
         ))}
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid min-w-0 gap-5 lg:grid-cols-3">
         <Card className="lg:col-span-2">
-          <div className="flex flex-wrap gap-1 border-b border-black/[0.04] px-2 pt-2">
+          <div
+            className="flex flex-wrap gap-1 border-b border-black/[0.04] px-2 pt-2"
+            role="tablist"
+            aria-label="载荷内容视图"
+          >
             {tabs.map((t) => (
               <button
                 key={t.key}
+                id={`payload-tab-${t.key}`}
                 type="button"
                 onClick={() => setTab(t.key)}
+                role="tab"
+                aria-selected={tab === t.key}
+                aria-controls={`payload-panel-${t.key}`}
                 className={cn(
-                  'rounded-t-xl px-4 py-2.5 text-sm font-medium transition',
-                  tab === t.key ? 'bg-white text-teal-700 shadow-sm' : 'text-muted hover:text-ink-800',
+                  'focus-ring min-h-11 rounded-t-xl px-4 py-2.5 text-sm font-medium transition',
+                  tab === t.key
+                    ? 'bg-white text-[var(--accent-deep)] shadow-sm'
+                    : 'text-muted hover:text-ink-800',
                 )}
               >
                 {t.label}
@@ -132,31 +154,39 @@ export function PayloadDetail() {
             ))}
           </div>
           <CardBody>
-            {tab === 'preview' && (
-              <pre className="max-h-[480px] overflow-auto rounded-2xl border border-line bg-[#0f1724] p-4 font-mono text-xs leading-relaxed text-emerald-300/90">
-                {payload.preview}
-              </pre>
-            )}
-            {tab === 'hex' && <HexViewer hex={payload.hex_sample || ''} />}
-            {tab === 'ascii' && (
-              <pre className="max-h-[480px] overflow-auto rounded-2xl border border-line bg-[#fafbfc] p-4 font-mono text-xs text-ink-800">
-                {payload.ascii_sample}
-              </pre>
-            )}
-            {tab === 'meta' && (
-              <div className="overflow-hidden rounded-2xl border border-line">
-                <table className="w-full text-sm">
-                  <tbody>
-                    {Object.entries(payload.metadata || {}).map(([k, v]) => (
-                      <tr key={k} className="border-b border-black/[0.04] last:border-0">
-                        <td className="w-1/3 bg-[#fafbfc] px-4 py-2.5 font-mono text-xs text-muted">{k}</td>
-                        <td className="px-4 py-2.5 font-mono text-xs text-ink-800">{String(v)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+            <div
+              id={`payload-panel-${tab}`}
+              role="tabpanel"
+              aria-labelledby={`payload-tab-${tab}`}
+              tabIndex={0}
+              className="focus-ring rounded-2xl"
+            >
+              {tab === 'preview' && (
+                <pre className="max-h-[480px] overflow-auto rounded-2xl border border-line bg-[#0f1724] p-4 font-mono text-xs leading-relaxed text-emerald-300/90">
+                  {payload.preview}
+                </pre>
+              )}
+              {tab === 'hex' && <HexViewer hex={payload.hex_sample || ''} />}
+              {tab === 'ascii' && (
+                <pre className="max-h-[480px] overflow-auto rounded-2xl border border-line bg-[#fafbfc] p-4 font-mono text-xs text-ink-800">
+                  {payload.ascii_sample}
+                </pre>
+              )}
+              {tab === 'meta' && (
+                <div className="max-w-full overflow-x-auto rounded-2xl border border-line">
+                  <table className="w-full min-w-[420px] text-sm">
+                    <tbody>
+                      {Object.entries(payload.metadata || {}).map(([k, v]) => (
+                        <tr key={k} className="border-b border-black/[0.04] last:border-0">
+                          <td className="w-1/3 bg-[#fafbfc] px-4 py-2.5 font-mono text-xs text-muted">{k}</td>
+                          <td className="break-all px-4 py-2.5 font-mono text-xs text-ink-800">{String(v)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
           </CardBody>
         </Card>
 
@@ -183,7 +213,7 @@ export function PayloadDetail() {
                 <>
                   <Row label="任务" value={task.name} />
                   <Row label="文件" value={task.filename} />
-                  <Link to={`/tasks/${task.id}`} className="inline-block pt-1 text-xs text-teal-700 hover:underline">
+                  <Link to={`/tasks/${task.id}`} className="focus-ring inline-block rounded pt-1 text-xs text-[var(--accent-deep)] hover:underline">
                     查看任务详情 →
                   </Link>
                 </>

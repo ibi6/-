@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Bell, Menu } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Bell, Menu, Upload } from 'lucide-react'
+import { Link, useLocation } from 'react-router-dom'
 import { ThemeSwitcher } from '../ThemeSwitcher'
 import { Button } from '../ui/Button'
+import { getRouteMeta } from '../../config/navigation'
 
 function pad(n: number) {
   return String(n).padStart(2, '0')
@@ -14,6 +15,8 @@ function formatNow(d: Date) {
 
 export function Header({ onMenu }: { onMenu?: () => void }) {
   const [now, setNow] = useState(() => formatNow(new Date()))
+  const { pathname } = useLocation()
+  const meta = getRouteMeta(pathname)
 
   useEffect(() => {
     const t = setInterval(() => setNow(formatNow(new Date())), 1000)
@@ -28,14 +31,15 @@ export function Header({ onMenu }: { onMenu?: () => void }) {
             <button
               type="button"
               onClick={onMenu}
-              className="rounded-xl border border-line bg-white p-2 text-ink-700 shadow-sm lg:hidden"
+              className="focus-ring flex h-11 w-11 items-center justify-center rounded-2xl border border-line bg-white text-ink-700 shadow-sm lg:hidden"
+              aria-label="打开主导航"
             >
               <Menu className="h-5 w-5" />
             </button>
           ) : null}
           <div>
-            <div className="text-[11px] text-muted">基于 Python · 流量应用载荷提取</div>
-            <div className="text-sm font-medium text-ink-800">工作台</div>
+            <div className="text-[11px] text-muted">{meta.eyebrow}</div>
+            <div className="text-sm font-semibold text-ink-800">{meta.title}</div>
           </div>
         </div>
 
@@ -44,19 +48,21 @@ export function Header({ onMenu }: { onMenu?: () => void }) {
           <ThemeSwitcher />
           <button
             type="button"
-            className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-line bg-white text-ink-500 shadow-sm hover:text-ink-800"
+            className="focus-ring relative hidden h-11 w-11 items-center justify-center rounded-2xl border border-line bg-white text-ink-500 shadow-sm hover:-translate-y-0.5 hover:text-ink-800 sm:flex"
+            aria-label="查看通知（1 条未读）"
             title="通知"
           >
             <Bell className="h-4 w-4" />
             <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-rose-500" />
           </button>
-          <Link to="/capture">
-            <Button size="sm" className="rounded-full px-4">
-              上传流量
+          <Link to="/capture" className="shrink-0">
+            <Button size="sm" className="rounded-full px-3 sm:px-4" aria-label="上传流量">
+              <Upload className="h-4 w-4" aria-hidden="true" />
+              <span className="hidden sm:inline">上传流量</span>
             </Button>
           </Link>
           <div className="hidden items-center gap-2 rounded-full border border-line bg-white py-1 pl-1 pr-3 shadow-sm sm:flex">
-            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-teal-400 to-teal-600 text-xs font-semibold text-white">
+            <div className="brand-avatar flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold">
               A
             </div>
             <span className="text-[13px] text-ink-700">admin</span>

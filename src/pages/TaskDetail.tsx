@@ -111,11 +111,11 @@ export function TaskDetail() {
         <Card className="mb-5 p-4">
           <div className="mb-2 flex justify-between text-sm">
             <span className="text-ink-600">处理进度</span>
-            <span className="font-mono text-teal-700">{task.progress}%</span>
+            <span className="font-mono text-[var(--accent-deep)]">{task.progress}%</span>
           </div>
           <div className="h-2 overflow-hidden rounded-full bg-[#eef1f3]">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-teal-500 to-emerald-400 transition-all"
+              className="h-full rounded-full bg-gradient-to-r from-[var(--accent)] to-emerald-400 transition-all"
               style={{ width: `${task.progress}%` }}
             />
           </div>
@@ -142,7 +142,7 @@ export function TaskDetail() {
             ) : (
               sessions.map((s) => (
                 <div key={s.id} className="flex items-center gap-3 px-5 py-3">
-                  <Network className="h-4 w-4 shrink-0 text-teal-600" />
+                  <Network className="h-4 w-4 shrink-0 text-[var(--accent-deep)]" />
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-mono text-xs text-ink-800">
                       {s.src_ip}:{s.src_port} → {s.dst_ip}:{s.dst_port}

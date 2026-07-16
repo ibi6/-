@@ -9,7 +9,7 @@ import { ErrorState, PageLoading } from '../components/ui/Loading'
 import { api, type ApiSettings } from '../lib/api'
 import type { Protocol } from '../types'
 import { cn } from '../lib/cn'
-import { useTheme } from '../theme/ThemeContext'
+import { useTheme } from '../theme/useTheme'
 
 const allProtocols: Protocol[] = [
   'HTTP',
@@ -38,6 +38,7 @@ export function Settings() {
   const { theme } = useTheme()
   const [settings, setSettings] = useState<ApiSettings>(defaults)
   const [saved, setSaved] = useState(false)
+  const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -67,12 +68,17 @@ export function Settings() {
   }
 
   const save = async () => {
+    setSaving(true)
+    setSaved(false)
+    setError('')
     try {
       setSettings(await api.saveSettings(settings))
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
     } catch (e) {
       setError(e instanceof Error ? e.message : '保存失败')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -92,14 +98,15 @@ export function Settings() {
               onClick={() => {
                 setSettings(defaults)
                 setSaved(false)
+                setError('')
               }}
             >
               <RotateCcw className="h-4 w-4" />
               恢复默认
             </Button>
-            <Button size="sm" onClick={() => void save()}>
+            <Button size="sm" onClick={() => void save()} disabled={saving} aria-live="polite">
               <Save className="h-4 w-4" />
-              {saved ? '已保存' : '保存设置'}
+              {saving ? '保存中…' : saved ? '已保存' : '保存设置'}
             </Button>
           </div>
         }
@@ -122,11 +129,12 @@ export function Settings() {
         <Card>
           <CardHeader title="解析引擎" />
           <CardBody className="space-y-5">
-            <Field label="最大上传体积 (MB)">
+            <Field id="max-upload-mb" label="最大上传体积 (MB)">
               <input
+                id="max-upload-mb"
                 type="number"
                 min={1}
-                max={4096}
+                max={512}
                 value={settings.max_upload_mb}
                 onChange={(e) => {
                   setSettings({ ...settings, max_upload_mb: Number(e.target.value) })
@@ -135,8 +143,9 @@ export function Settings() {
                 className="field"
               />
             </Field>
-            <Field label="Hex 列数">
+            <Field id="hex-columns" label="Hex 列数">
               <select
+                id="hex-columns"
                 value={settings.hex_columns}
                 onChange={(e) => {
                   setSettings({ ...settings, hex_columns: Number(e.target.value) })
@@ -151,8 +160,9 @@ export function Settings() {
                 ))}
               </select>
             </Field>
-            <Field label="数据保留天数">
+            <Field id="retain-days" label="数据保留天数">
               <input
+                id="retain-days"
                 type="number"
                 min={1}
                 max={365}
@@ -164,15 +174,14 @@ export function Settings() {
                 className="field"
               />
             </Field>
-            <Field label="存储路径">
+            <Field id="storage-path" label="存储位置（只读）">
               <input
+                id="storage-path"
                 type="text"
                 value={settings.storage_path}
-                onChange={(e) => {
-                  setSettings({ ...settings, storage_path: e.target.value })
-                  setSaved(false)
-                }}
-                className="field"
+                readOnly
+                aria-readonly="true"
+                className="field cursor-not-allowed bg-ink-50 text-ink-500"
               />
             </Field>
             <Toggle
@@ -207,7 +216,11 @@ export function Settings() {
                     key={p}
                     type="button"
                     onClick={() => toggleProtocol(p)}
-                    className={cn('rounded-2xl px-2 py-1.5', on ? 'ring-1 ring-teal-500/40' : 'opacity-40')}
+                    aria-pressed={on}
+                    className={cn(
+                      'focus-ring min-h-11 rounded-2xl px-2 py-1.5 transition',
+                      on ? 'bg-[var(--accent-soft)] ring-1 ring-[var(--accent-border)]' : 'opacity-45 hover:opacity-75',
+                    )}
                   >
                     <ProtocolBadge protocol={p} />
                   </button>
@@ -218,31 +231,22 @@ export function Settings() {
         </Card>
       </div>
 
-      <style>{`
-        .field {
-          height: 2.5rem;
-          width: 100%;
-          border-radius: 1rem;
-          border: 1px solid #e8eceb;
-          background: #fff;
-          padding: 0 0.875rem;
-          font-size: 0.875rem;
-          color: #111827;
-          outline: none;
-        }
-        .field:focus {
-          border-color: #14b8a6;
-          box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.12);
-        }
-      `}</style>
     </div>
   )
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  id,
+  label,
+  children,
+}: {
+  id: string
+  label: string
+  children: React.ReactNode
+}) {
   return (
     <div className="grid gap-2 sm:grid-cols-[180px_1fr] sm:items-center">
-      <p className="text-sm text-ink-700">{label}</p>
+      <label htmlFor={id} className="text-sm text-ink-700">{label}</label>
       {children}
     </div>
   )
@@ -269,7 +273,7 @@ function Toggle({
         type="checkbox"
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
-        className="h-4 w-4 accent-teal-600"
+        className="theme-checkbox h-5 w-5 shrink-0"
       />
     </label>
   )

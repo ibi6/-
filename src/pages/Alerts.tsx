@@ -67,7 +67,7 @@ export function Alerts() {
             className={cn(
               'rounded-full px-3.5 py-1.5 text-xs font-medium transition',
               level === f.key
-                ? 'bg-teal-600 text-white shadow-sm'
+                ? 'bg-[var(--accent-deep)] text-[var(--accent-contrast)] shadow-sm'
                 : 'border border-line bg-white text-ink-600 hover:bg-ink-50',
             )}
           >

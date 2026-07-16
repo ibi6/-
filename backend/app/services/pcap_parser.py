@@ -9,7 +9,7 @@ import socket
 import struct
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 
@@ -62,7 +62,7 @@ class ParseResult:
 def _ts_to_dt(ts: float | None) -> datetime | None:
     if ts is None:
         return None
-    return datetime.fromtimestamp(ts, tz=timezone.utc).replace(tzinfo=None)
+    return datetime.fromtimestamp(ts, tz=UTC).replace(tzinfo=None)
 
 
 def _hex_sample(data: bytes, limit: int = 96) -> str:
@@ -418,14 +418,12 @@ def _parse_http(text: str, raw: bytes, key: str, ts: datetime | None, direction:
         lines = part.split("\r\n") if "\r\n" in part else part.split("\n")
         start = lines[0] if lines else ""
         headers: dict[str, str] = {}
-        body = ""
         if "" in lines:
             idx = lines.index("")
             for h in lines[1:idx]:
                 if ":" in h:
                     k, v = h.split(":", 1)
                     headers[k.strip().lower()] = v.strip()
-            body = "\n".join(lines[idx + 1 :])
         else:
             for h in lines[1:]:
                 if ":" in h:
