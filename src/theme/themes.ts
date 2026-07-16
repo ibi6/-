@@ -7,6 +7,8 @@ export type ThemeId =
   | 'emerald'
   | 'slate'
 
+export const DEFAULT_THEME_ID: ThemeId = 'cyan'
+
 export interface ThemeDef {
   id: ThemeId
   name: string
@@ -76,9 +78,9 @@ export const themes: ThemeDef[] = [
   },
   {
     id: 'cyan',
-    name: '赛博青',
-    desc: '青蓝科技风',
-    swatch: '#22d3ee',
+    name: '深海青',
+    desc: 'PayloadX 品牌色',
+    swatch: '#14b8a6',
     vars: {
       '--bg': '#04161a',
       '--bg-2': '#062026',
@@ -91,26 +93,26 @@ export const themes: ThemeDef[] = [
       '--metric-from': 'rgba(14, 52, 62, 0.95)',
       '--metric-to': 'rgba(8, 32, 40, 0.98)',
       '--border': '#1a4a55',
-      '--border-accent': 'rgba(34, 211, 238, 0.3)',
+      '--border-accent': 'rgba(20, 184, 166, 0.3)',
       '--text': '#d0f7ff',
       '--text-strong': '#ffffff',
       '--text-soft': '#b8ecf7',
       '--muted': '#6fa8b5',
       '--muted-2': '#4f8694',
       '--muted-3': '#3d6b78',
-      '--title': '#7ee9f7',
-      '--accent': '#22d3ee',
-      '--accent-2': '#67e8f9',
-      '--accent-deep': '#0e7490',
-      '--accent-hover': '#155e75',
-      '--accent-soft': 'rgba(34, 211, 238, 0.15)',
-      '--accent-glow': 'rgba(34, 211, 238, 0.35)',
-      '--secondary': '#34d399',
-      '--sidebar-from': '#06b6d4',
-      '--sidebar-to': '#0e7490',
-      '--glow-1': 'rgba(6, 182, 212, 0.18)',
-      '--glow-2': 'rgba(20, 120, 140, 0.1)',
-      '--chart-1': '#22d3ee',
+      '--title': '#8ff3e7',
+      '--accent': '#14b8a6',
+      '--accent-2': '#5eead4',
+      '--accent-deep': '#0f766e',
+      '--accent-hover': '#0d9488',
+      '--accent-soft': 'rgba(20, 184, 166, 0.14)',
+      '--accent-glow': 'rgba(20, 184, 166, 0.32)',
+      '--secondary': '#38bdf8',
+      '--sidebar-from': '#14b8a6',
+      '--sidebar-to': '#0f766e',
+      '--glow-1': 'rgba(13, 148, 136, 0.18)',
+      '--glow-2': 'rgba(20, 184, 166, 0.08)',
+      '--chart-1': '#14b8a6',
       '--chart-2': '#34d399',
       '--chart-3': '#a78bfa',
       '--chart-4': '#fbbf24',
@@ -367,7 +369,10 @@ export const themes: ThemeDef[] = [
 export const THEME_STORAGE_KEY = 'payloadx-theme'
 
 export function getTheme(id: ThemeId): ThemeDef {
-  return themes.find((t) => t.id === id) ?? themes[0]
+  return (
+    themes.find((theme) => theme.id === id) ??
+    themes.find((theme) => theme.id === DEFAULT_THEME_ID)!
+  )
 }
 
 const contrastByTheme: Record<ThemeId, string> = {
@@ -427,5 +432,5 @@ export function loadStoredTheme(): ThemeId {
   } catch {
     /* ignore */
   }
-  return 'blue'
+  return DEFAULT_THEME_ID
 }

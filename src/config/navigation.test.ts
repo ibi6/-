@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { NAV_ITEMS, getRouteMeta } from './navigation.ts'
+import { NAV_GROUPS, NAV_ITEMS, getRouteMeta } from './navigation.ts'
 
 test('desktop and mobile navigation share all product modules', () => {
   assert.deepEqual(
@@ -17,6 +17,13 @@ test('desktop and mobile navigation share all product modules', () => {
       '/logs',
       '/help',
     ],
+  )
+})
+
+test('navigation groups cover every module exactly once', () => {
+  assert.deepEqual(
+    NAV_GROUPS.flatMap((group) => group.items.map((item) => item.to)),
+    NAV_ITEMS.map((item) => item.to),
   )
 })
 

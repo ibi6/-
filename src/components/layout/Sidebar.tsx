@@ -1,61 +1,39 @@
-import { NavLink } from 'react-router-dom'
-import { Activity, Binary } from 'lucide-react'
-import { cn } from '../../lib/cn'
-import { NAV_ITEMS } from '../../config/navigation'
+import { Activity } from 'lucide-react'
+import { BrandMark } from '../BrandMark'
+import { SidebarNavigation } from './SidebarNavigation'
 
 export function Sidebar() {
   return (
-    <aside className="sidebar-shell fixed inset-y-0 left-0 z-30 flex w-[232px] flex-col text-white">
-      <div className="flex items-center gap-3 px-5 py-5">
-        <div className="brand-mark flex h-10 w-10 items-center justify-center rounded-2xl">
-          <Binary className="h-5 w-5 text-white" />
-        </div>
-        <div>
-          <div className="text-[15px] font-semibold tracking-wide text-white">载荷提取系统</div>
-          <div className="text-[11px] text-white/40">Payload Extractor</div>
+    <aside className="sidebar-shell fixed inset-y-0 left-0 z-30 flex w-[244px] flex-col text-white">
+      <div className="relative z-10 flex items-center gap-3 border-b border-white/[0.055] px-5 py-5">
+        <BrandMark />
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="text-[17px] font-semibold tracking-tight text-white">PayloadX</span>
+            <span className="rounded-md bg-white/[0.06] px-1.5 py-0.5 font-mono text-[8px] text-white/35">v1.0</span>
+          </div>
+          <div className="mt-0.5 font-mono text-[9px] tracking-[0.14em] text-white/32">
+            NETWORK FORENSICS
+          </div>
         </div>
       </div>
 
-      <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-2">
-        {NAV_ITEMS.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.end}
-            className={({ isActive }) =>
-              cn(
-                'group flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-[13px] font-medium transition-all',
-                isActive
-                  ? 'nav-active'
-                  : 'text-white/55 hover:bg-white/[0.06] hover:text-white/90',
-              )
-            }
-          >
-            {({ isActive }) => (
-              <>
-                <item.icon
-                  className={cn(
-                    'nav-icon h-[18px] w-[18px]',
-                    isActive ? '' : 'text-white/40 group-hover:text-white/70',
-                  )}
-                />
-                <span>{item.label}</span>
-              </>
-            )}
-          </NavLink>
-        ))}
-      </nav>
+      <SidebarNavigation />
 
-      <div className="border-t border-white/[0.06] p-4">
-        <div className="rounded-2xl bg-white/[0.05] p-3 ring-1 ring-white/[0.06]">
+      <div className="relative z-10 border-t border-white/[0.055] p-4">
+        <div className="rounded-[16px] bg-white/[0.045] p-3 ring-1 ring-white/[0.065] backdrop-blur-sm">
           <div className="flex items-center gap-2">
-            <Activity className="h-3.5 w-3.5 text-emerald-400" aria-hidden="true" />
-            <span className="text-[11px] text-white/50">解析引擎</span>
-            <span className="ml-auto font-mono text-[11px] text-emerald-400">ONLINE</span>
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-40" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+            </span>
+            <span className="text-[11px] text-white/52">解析引擎</span>
+            <span className="ml-auto font-mono text-[9px] tracking-wider text-emerald-300">ONLINE</span>
           </div>
-          <p className="mt-2 text-[11px] leading-relaxed text-white/35">
-            本地优先 · 开源可部署
-          </p>
+          <div className="mt-2.5 flex items-center gap-2 border-t border-white/[0.05] pt-2.5 text-[10px] text-white/30">
+            <Activity className="h-3 w-3 text-[var(--accent-2)]" aria-hidden="true" />
+            本地处理 · 数据不出站
+          </div>
         </div>
       </div>
     </aside>

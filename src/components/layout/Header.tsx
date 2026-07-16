@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Bell, Menu, Upload } from 'lucide-react'
+import { Menu, ShieldCheck, Upload } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { ThemeSwitcher } from '../ThemeSwitcher'
 import { Button } from '../ui/Button'
@@ -24,8 +24,8 @@ export function Header({ onMenu }: { onMenu?: () => void }) {
   }, [])
 
   return (
-    <header className="sticky top-0 z-20 border-b border-black/[0.04] bg-[#f6f8f7]/85 backdrop-blur-xl">
-      <div className="flex items-center justify-between gap-3 px-4 py-3.5 sm:px-7">
+    <header className="app-header sticky top-0 z-20">
+      <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-7 lg:px-8">
         <div className="flex items-center gap-3">
           {onMenu ? (
             <button
@@ -44,28 +44,21 @@ export function Header({ onMenu }: { onMenu?: () => void }) {
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
-          <span className="hidden font-mono text-[12px] text-muted md:block">{now}</span>
+          <div className="hidden items-center gap-2 rounded-full border border-line/80 bg-white/65 px-3 py-2 font-mono text-[10px] text-muted lg:flex">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            {now}
+            <span className="text-ink-400">UTC+8</span>
+          </div>
           <ThemeSwitcher />
-          <button
-            type="button"
-            className="focus-ring relative hidden h-11 w-11 items-center justify-center rounded-2xl border border-line bg-white text-ink-500 shadow-sm hover:-translate-y-0.5 hover:text-ink-800 sm:flex"
-            aria-label="查看通知（1 条未读）"
-            title="通知"
-          >
-            <Bell className="h-4 w-4" />
-            <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-rose-500" />
-          </button>
           <Link to="/capture" className="shrink-0">
             <Button size="sm" className="rounded-full px-3 sm:px-4" aria-label="上传流量">
               <Upload className="h-4 w-4" aria-hidden="true" />
               <span className="hidden sm:inline">上传流量</span>
             </Button>
           </Link>
-          <div className="hidden items-center gap-2 rounded-full border border-line bg-white py-1 pl-1 pr-3 shadow-sm sm:flex">
-            <div className="brand-avatar flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold">
-              A
-            </div>
-            <span className="text-[13px] text-ink-700">admin</span>
+          <div className="hidden h-11 items-center gap-2 rounded-full border border-line bg-white/80 px-3 text-[12px] text-ink-600 shadow-sm sm:flex">
+            <ShieldCheck className="h-4 w-4 text-emerald-600" aria-hidden="true" />
+            <span>本地模式</span>
           </div>
         </div>
       </div>

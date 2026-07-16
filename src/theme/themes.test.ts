@@ -1,6 +1,16 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { getThemeCssVars, themes } from './themes.ts'
+import {
+  DEFAULT_THEME_ID,
+  getThemeCssVars,
+  loadStoredTheme,
+  themes,
+} from './themes.ts'
+
+test('new sessions use the PayloadX brand theme', () => {
+  assert.equal(DEFAULT_THEME_ID, 'cyan')
+  assert.equal(loadStoredTheme(), 'cyan')
+})
 
 test('every accent theme exposes complete interactive CSS tokens', () => {
   for (const theme of themes) {

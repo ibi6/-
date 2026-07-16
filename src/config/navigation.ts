@@ -38,6 +38,11 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/help', label: '帮助文档', description: '使用说明', icon: BookOpen },
 ]
 
+export const NAV_GROUPS = [
+  { label: '调查工作区', items: NAV_ITEMS.slice(0, 7) },
+  { label: '系统与支持', items: NAV_ITEMS.slice(7) },
+] as const
+
 const routeMeta = new Map(
   NAV_ITEMS.map((item) => [
     item.to,
