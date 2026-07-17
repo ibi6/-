@@ -16,6 +16,11 @@
 </p>
 
 <p align="center">
+  <strong>当前展示为第二版界面（UI V2）</strong><br/>
+  <sub>这是 v1.0 产品线的第二轮视觉与交互优化，不等同于路线图中的 v2.0 功能版本。</sub>
+</p>
+
+<p align="center">
   <a href="#快速开始">快速开始</a> ·
   <a href="docs/ARCHITECTURE.md">架构说明</a> ·
   <a href="docs/API.md">接口文档</a> ·
