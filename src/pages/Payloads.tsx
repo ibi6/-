@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { Search } from 'lucide-react'
+import { LayoutGrid, Search, Table2 } from 'lucide-react'
 import { PageHeader } from '../components/PageHeader'
 import {
   ProtocolBadge,
@@ -95,8 +95,8 @@ export function Payloads() {
       )}
 
       <Card className="mb-5">
-        <CardBody className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="relative max-w-md flex-1">
+        <CardBody className="flex min-w-0 flex-col gap-3 lg:flex-row lg:items-center">
+          <div className="relative w-full lg:max-w-sm lg:shrink-0">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
             <input
               value={q}
@@ -106,50 +106,89 @@ export function Payloads() {
               className="field h-11 pl-9"
             />
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            {types.map((t) => (
-              <button
-                key={t}
-                type="button"
-                onClick={() => setType(t)}
-                aria-pressed={type === t}
-                className={cn(
-                  'focus-ring min-h-11 rounded-full px-3 text-xs font-medium uppercase',
-                  type === t
-                    ? 'bg-[var(--accent-deep)] text-[var(--accent-contrast)] shadow-sm'
-                    : 'border border-line text-ink-600 hover:bg-ink-50',
-                )}
-              >
-                {t === 'all' ? '全部' : t}
-              </button>
-            ))}
-            <div className="ml-1 flex overflow-hidden rounded-full border border-line" role="group" aria-label="载荷显示方式">
-              <button
-                type="button"
-                onClick={() => setView('table')}
-                aria-pressed={view === 'table'}
-                className={cn(
-                  'focus-ring min-h-11 px-3 text-xs',
-                  view === 'table'
-                    ? 'bg-[var(--accent-deep)] text-[var(--accent-contrast)]'
-                    : 'text-ink-600',
-                )}
-              >
-                表格
-              </button>
-              <button
-                type="button"
-                onClick={() => setView('card')}
-                aria-pressed={view === 'card'}
-                className={cn(
-                  'focus-ring min-h-11 px-3 text-xs',
-                  view === 'card'
-                    ? 'bg-[var(--accent-deep)] text-[var(--accent-contrast)]'
-                    : 'text-ink-600',
-                )}
-              >
-                卡片
-              </button>
+          <div className="min-w-0 flex-1">
+            <div className="mb-2 flex items-center justify-between gap-3 lg:hidden">
+              <span className="text-[11px] font-medium text-muted">载荷类型</span>
+              <div className="flex overflow-hidden rounded-full border border-line" role="group" aria-label="载荷显示方式">
+                <button
+                  type="button"
+                  onClick={() => setView('table')}
+                  aria-pressed={view === 'table'}
+                  className={cn(
+                    'focus-ring flex min-h-11 items-center gap-1.5 px-3 text-xs',
+                    view === 'table'
+                      ? 'bg-[var(--accent-deep)] text-[var(--accent-contrast)]'
+                      : 'text-ink-600',
+                  )}
+                >
+                  <Table2 className="h-3.5 w-3.5" aria-hidden="true" />
+                  表格
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setView('card')}
+                  aria-pressed={view === 'card'}
+                  className={cn(
+                    'focus-ring flex min-h-11 items-center gap-1.5 px-3 text-xs',
+                    view === 'card'
+                      ? 'bg-[var(--accent-deep)] text-[var(--accent-contrast)]'
+                      : 'text-ink-600',
+                  )}
+                >
+                  <LayoutGrid className="h-3.5 w-3.5" aria-hidden="true" />
+                  卡片
+                </button>
+              </div>
+            </div>
+            <div className="flex min-w-0 items-center gap-2">
+              <div className="chip-scroll flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1 lg:pb-0">
+                {types.map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => setType(t)}
+                    aria-pressed={type === t}
+                    className={cn(
+                      'focus-ring min-h-11 shrink-0 rounded-full px-3 text-xs font-medium uppercase',
+                      type === t
+                        ? 'bg-[var(--accent-deep)] text-[var(--accent-contrast)] shadow-sm'
+                        : 'border border-line text-ink-600 hover:bg-ink-50',
+                    )}
+                  >
+                    {t === 'all' ? '全部' : t}
+                  </button>
+                ))}
+              </div>
+              <div className="hidden shrink-0 overflow-hidden rounded-full border border-line lg:flex" role="group" aria-label="载荷显示方式">
+                <button
+                  type="button"
+                  onClick={() => setView('table')}
+                  aria-pressed={view === 'table'}
+                  className={cn(
+                    'focus-ring flex min-h-11 items-center gap-1.5 px-3 text-xs',
+                    view === 'table'
+                      ? 'bg-[var(--accent-deep)] text-[var(--accent-contrast)]'
+                      : 'text-ink-600',
+                  )}
+                >
+                  <Table2 className="h-3.5 w-3.5" aria-hidden="true" />
+                  表格
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setView('card')}
+                  aria-pressed={view === 'card'}
+                  className={cn(
+                    'focus-ring flex min-h-11 items-center gap-1.5 px-3 text-xs',
+                    view === 'card'
+                      ? 'bg-[var(--accent-deep)] text-[var(--accent-contrast)]'
+                      : 'text-ink-600',
+                  )}
+                >
+                  <LayoutGrid className="h-3.5 w-3.5" aria-hidden="true" />
+                  卡片
+                </button>
+              </div>
             </div>
           </div>
         </CardBody>

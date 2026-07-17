@@ -110,10 +110,10 @@ export function Capture() {
                 acceptFile(e.dataTransfer.files?.[0] ?? null)
               }}
               className={cn(
-                'focus-ring flex flex-col items-center justify-center rounded-2xl border-2 border-dashed px-6 py-14 transition',
+                'focus-ring flex flex-col items-center justify-center rounded-[18px] border-2 border-dashed px-5 py-10 transition sm:px-6 sm:py-14',
                 dragOver
                   ? 'border-[var(--accent)] bg-[var(--accent-soft)]'
-                  : 'border-line bg-[#fafbfc] hover:border-[var(--accent-border)]',
+                  : 'border-line bg-[linear-gradient(145deg,#fbfcfc,rgba(240,253,250,0.72))] hover:border-[var(--accent-border)]',
               )}
             >
               <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--accent-soft)] text-[var(--accent-deep)]">
@@ -123,7 +123,17 @@ export function Capture() {
               <p id={`${fileInputId}-hint`} className="mt-1 text-center text-xs leading-relaxed text-muted">
                 支持 .pcap / .cap，最大 512 MB；PCAPNG 请先转换
               </p>
-              <label className="mt-5">
+              <div className="mt-3 flex flex-wrap justify-center gap-1.5" aria-label="上传能力">
+                {['本地处理', '流式上传', '文件校验'].map((label) => (
+                  <span
+                    key={label}
+                    className="rounded-full border border-emerald-100 bg-emerald-50/80 px-2.5 py-1 text-[10px] font-medium text-emerald-700"
+                  >
+                    {label}
+                  </span>
+                ))}
+              </div>
+              <label className="mt-4">
                 <input
                   id={fileInputId}
                   ref={fileInputRef}
@@ -216,7 +226,7 @@ export function Capture() {
           </CardBody>
         </Card>
 
-        <Card className="xl:col-span-2">
+        <Card className="xl:col-span-2 xl:self-start">
           <CardHeader title="最近捕获任务" action={<Layers className="h-4 w-4 text-muted" />} />
           <CardBody className="divide-y divide-black/[0.04] !p-0">
             {tasks.length === 0 ? (
@@ -249,6 +259,20 @@ export function Capture() {
                   <div className="mt-2 flex flex-wrap gap-1">
                     {t.protocols.slice(0, 4).map((p) => (
                       <ProtocolBadge key={p} protocol={p} />
+                    ))}
+                  </div>
+                  <div className="mt-3 grid grid-cols-3 gap-2 rounded-xl border border-black/[0.04] bg-ink-50/70 p-2.5">
+                    {[
+                      ['数据包', t.packet_count],
+                      ['会话', t.session_count],
+                      ['载荷', t.payload_count],
+                    ].map(([label, value]) => (
+                      <div key={label} className="text-center">
+                        <p className="font-mono text-[13px] font-semibold tabular-nums text-ink-800">
+                          {Number(value).toLocaleString()}
+                        </p>
+                        <p className="mt-0.5 text-[10px] text-muted">{label}</p>
+                      </div>
                     ))}
                   </div>
                 </Link>

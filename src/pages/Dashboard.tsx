@@ -115,19 +115,21 @@ export function Dashboard() {
   return (
     <div>
       <PageHeader
-        title="你好，管理员"
-        subtitle="数据来自 Python 后端解析结果；可上传真实 PCAP 验证。"
+        title="调查工作台"
+        subtitle="监看解析引擎、协议分布与风险载荷的实时状态"
       />
 
-      <div className="grid min-w-0 gap-4 sm:grid-cols-2 xl:grid-cols-6">
+      <div className="grid min-w-0 grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-6">
         {metrics.map((m, index) => {
           const primary = index === 0
           return (
           <Card
             key={m.label}
             className={cn(
-              'p-5 transition duration-200 hover:-translate-y-0.5',
-              primary ? 'metric-card-primary sm:col-span-2 xl:col-span-2' : 'xl:col-span-1',
+              'min-h-[126px] p-4 transition duration-200 hover:-translate-y-0.5 sm:min-h-0 sm:p-5',
+              primary
+                ? 'metric-card-primary col-span-2 xl:col-span-2'
+                : 'metric-card xl:col-span-1',
             )}
           >
             <div className="flex items-start justify-between gap-3">
@@ -135,7 +137,7 @@ export function Dashboard() {
                 <div className={cn('text-[12px] font-medium', primary ? 'text-white/55' : 'text-muted')}>
                   {m.label}
                 </div>
-                <div className={cn('mt-2 truncate text-[26px] font-semibold leading-none', primary ? 'text-white' : 'text-ink-900')}>
+                <div className={cn('mt-2 text-[24px] font-semibold leading-none tabular-nums sm:text-[26px]', primary ? 'text-white' : 'text-ink-900')}>
                   {m.value}
                 </div>
                 <div className={cn('mt-2.5 text-[11px]', primary ? 'text-white/55' : 'text-muted')}>
@@ -144,12 +146,12 @@ export function Dashboard() {
               </div>
               <div
                 className={cn(
-                  'flex h-10 w-10 shrink-0 items-center justify-center rounded-full',
+                  'flex h-9 w-9 shrink-0 items-center justify-center rounded-full sm:h-10 sm:w-10',
                   primary ? 'bg-white/10 text-[var(--accent-2)] ring-1 ring-white/10' : m.iconBg,
                   primary ? '' : m.iconColor,
                 )}
               >
-                <m.icon className="h-[18px] w-[18px]" />
+                <m.icon className="h-4 w-4 sm:h-[18px] sm:w-[18px]" />
               </div>
             </div>
           </Card>
