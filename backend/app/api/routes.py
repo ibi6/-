@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Upload
 from sqlalchemy import String, cast, func, or_, select
 from sqlalchemy.orm import Session
 
-from app.core.config import UPLOAD_DIR, get_settings
+from app.core.config import get_settings
 from app.db.session import get_db
 from app.models.entities import Alert, CaptureTask, FlowSession, OpLog, Payload, SystemConfig
 from app.schemas.common import (
@@ -64,6 +64,12 @@ def _effective_max_upload_mb(db: Session) -> int:
     except (TypeError, ValueError):
         configured = settings.max_upload_mb
     return max(1, min(configured, settings.max_upload_mb))
+
+
+def _upload_dir() -> Path:
+    path = settings.upload_path
+    path.mkdir(parents=True, exist_ok=True)
+    return path
 
 
 async def _persist_pcap_upload(file: UploadFile, destination: Path, max_bytes: int) -> int:
@@ -207,9 +213,9 @@ async def upload_task(
             raise HTTPException(400, "当前版本请将 PCAPNG 另存为经典 PCAP 后再上传")
         raise HTTPException(400, "仅支持 .pcap / .cap 文件")
 
-    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    upload_dir = _upload_dir()
     safe = f"{datetime.utcnow().strftime('%Y%m%d%H%M%S')}_{uuid4().hex[:12]}_{filename}"
-    dest = UPLOAD_DIR / safe
+    dest = upload_dir / safe
     max_upload_mb = _effective_max_upload_mb(db)
     file_size = await _persist_pcap_upload(file, dest, max_upload_mb * 1024 * 1024)
 

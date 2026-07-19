@@ -34,7 +34,7 @@ def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
 
     upload_dir = tmp_path / "uploads"
     upload_dir.mkdir()
-    monkeypatch.setattr(routes_mod, "UPLOAD_DIR", upload_dir)
+    monkeypatch.setattr(routes_mod.settings, "upload_dir", str(upload_dir))
 
     def override_get_db():
         db = TestingSessionLocal()
@@ -76,6 +76,16 @@ def test_cors_allows_known_frontend_without_credentials(client: TestClient):
     assert "access-control-allow-credentials" not in r.headers
 
 
+def test_api_disables_sensitive_response_caching(client: TestClient):
+    response = client.get("/api/v1/dashboard")
+
+    assert response.status_code == 200
+    assert response.headers["cache-control"] == "no-store"
+    assert response.headers["x-content-type-options"] == "nosniff"
+    assert response.headers["x-frame-options"] == "DENY"
+    assert response.headers["referrer-policy"] == "no-referrer"
+
+
 def test_upload_and_list(client: TestClient, tmp_path: Path):
     pcap = tmp_path / "u.pcap"
     _build_demo_pcap(pcap)
@@ -113,6 +123,27 @@ def test_upload_normalizes_untrusted_filename(client: TestClient, tmp_path: Path
         )
     assert r.status_code == 200, r.text
     assert r.json()["filename"] == "escape.pcap"
+
+
+def test_upload_uses_configured_directory(
+    client: TestClient,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    configured = tmp_path / "configured-uploads"
+    monkeypatch.setattr(routes_mod.settings, "upload_dir", str(configured))
+    pcap = tmp_path / "configured.pcap"
+    _build_demo_pcap(pcap)
+
+    with pcap.open("rb") as stream:
+        response = client.post(
+            "/api/v1/tasks/upload",
+            files={"file": (pcap.name, stream, "application/vnd.tcpdump.pcap")},
+        )
+
+    assert response.status_code == 200, response.text
+    assert configured.is_dir()
+    assert [path.name for path in configured.iterdir()] != []
 
 
 def test_task_list_enforces_limit_and_offset(client: TestClient, tmp_path: Path):
