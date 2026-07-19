@@ -6,7 +6,7 @@ from uuid import uuid4
 
 import aiofiles
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
-from sqlalchemy import func, select
+from sqlalchemy import String, cast, func, or_, select
 from sqlalchemy.orm import Session
 
 from app.core.config import UPLOAD_DIR, get_settings
@@ -35,6 +35,15 @@ PCAP_MAGIC_VALUES = {
     bytes.fromhex("4d3cb2a1"),
     bytes.fromhex("a1b23c4d"),
 }
+
+
+def _search_pattern(value: str | None) -> str | None:
+    """Normalize a bounded user search into an escaped SQL LIKE pattern."""
+    term = (value or "").strip().casefold()
+    if not term:
+        return None
+    escaped = term.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    return f"%{escaped}%"
 
 
 def _safe_upload_name(raw_name: str | None) -> str:
@@ -155,17 +164,25 @@ def dashboard(db: Session = Depends(get_db)) -> DashboardOut:
 
 @router.get("/tasks", response_model=list[TaskOut])
 def list_tasks(
-    status: str | None = None,
-    q: str | None = None,
+    status: str | None = Query(default=None, max_length=20),
+    q: str | None = Query(default=None, max_length=200),
+    limit: int = Query(200, ge=1, le=2000),
+    offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
 ) -> list[TaskOut]:
-    stmt = select(CaptureTask).order_by(CaptureTask.id.desc())
+    stmt = select(CaptureTask)
     if status and status != "all":
         stmt = stmt.where(CaptureTask.status == status)
+    if pattern := _search_pattern(q):
+        stmt = stmt.where(
+            or_(
+                func.lower(CaptureTask.name).like(pattern, escape="\\"),
+                func.lower(CaptureTask.filename).like(pattern, escape="\\"),
+                cast(CaptureTask.id, String).like(pattern, escape="\\"),
+            )
+        )
+    stmt = stmt.order_by(CaptureTask.id.desc()).offset(offset).limit(limit)
     tasks = list(db.scalars(stmt).all())
-    if q:
-        ql = q.lower()
-        tasks = [t for t in tasks if ql in t.name.lower() or ql in t.filename.lower() or ql in str(t.id)]
     return [task_out(t) for t in tasks]
 
 
@@ -228,63 +245,71 @@ def reparse(task_id: int, db: Session = Depends(get_db)) -> Message:
 @router.get("/sessions", response_model=list[SessionOut])
 def list_sessions(
     task_id: int | None = None,
-    protocol: str | None = None,
-    q: str | None = None,
+    protocol: str | None = Query(default=None, max_length=20),
+    q: str | None = Query(default=None, max_length=200),
     limit: int = Query(200, ge=1, le=2000),
+    offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
 ) -> list[SessionOut]:
-    stmt = select(FlowSession).order_by(FlowSession.id.desc()).limit(limit)
+    stmt = select(FlowSession)
     if task_id is not None:
-        stmt = select(FlowSession).where(FlowSession.task_id == task_id).order_by(FlowSession.id.desc()).limit(limit)
-    sessions = list(db.scalars(stmt).all())
+        stmt = stmt.where(FlowSession.task_id == task_id)
     if protocol and protocol != "all":
-        sessions = [s for s in sessions if s.protocol == protocol]
-    if q:
-        ql = q.lower()
-        sessions = [
-            s
-            for s in sessions
-            if ql in s.src_ip.lower()
-            or ql in s.dst_ip.lower()
-            or ql in (s.application or "").lower()
-            or ql in str(s.id)
-        ]
+        stmt = stmt.where(func.lower(FlowSession.protocol) == protocol.strip().casefold())
+    if pattern := _search_pattern(q):
+        stmt = stmt.where(
+            or_(
+                func.lower(FlowSession.src_ip).like(pattern, escape="\\"),
+                func.lower(FlowSession.dst_ip).like(pattern, escape="\\"),
+                func.lower(FlowSession.application).like(pattern, escape="\\"),
+                cast(FlowSession.id, String).like(pattern, escape="\\"),
+            )
+        )
+    stmt = stmt.order_by(FlowSession.id.desc()).offset(offset).limit(limit)
+    sessions = list(db.scalars(stmt).all())
 
-    # payload ids
-    out: list[SessionOut] = []
-    for s in sessions:
-        pids = list(db.scalars(select(Payload.id).where(Payload.session_id == s.id)).all())
-        out.append(session_out(s, pids))
-    return out
+    session_ids = [session.id for session in sessions]
+    payload_ids_by_session: dict[int, list[int]] = {session_id: [] for session_id in session_ids}
+    if session_ids:
+        payload_rows = db.execute(
+            select(Payload.session_id, Payload.id)
+            .where(Payload.session_id.in_(session_ids))
+            .order_by(Payload.id)
+        ).all()
+        for session_id, payload_id in payload_rows:
+            if session_id is not None:
+                payload_ids_by_session[session_id].append(payload_id)
+    return [session_out(session, payload_ids_by_session[session.id]) for session in sessions]
 
 
 @router.get("/payloads", response_model=list[PayloadOut])
 def list_payloads(
     task_id: int | None = None,
     session_id: int | None = None,
-    type: str | None = None,
-    q: str | None = None,
+    type: str | None = Query(default=None, max_length=20),
+    q: str | None = Query(default=None, max_length=200),
     limit: int = Query(200, ge=1, le=2000),
+    offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
 ) -> list[PayloadOut]:
-    stmt = select(Payload).order_by(Payload.id.desc()).limit(limit)
+    stmt = select(Payload)
     if task_id is not None:
-        stmt = select(Payload).where(Payload.task_id == task_id).order_by(Payload.id.desc()).limit(limit)
+        stmt = stmt.where(Payload.task_id == task_id)
     if session_id is not None:
-        stmt = select(Payload).where(Payload.session_id == session_id).order_by(Payload.id.desc()).limit(limit)
-    items = list(db.scalars(stmt).all())
+        stmt = stmt.where(Payload.session_id == session_id)
     if type and type != "all":
-        items = [p for p in items if p.payload_type == type]
-    if q:
-        ql = q.lower()
-        items = [
-            p
-            for p in items
-            if ql in (p.summary or "").lower()
-            or ql in (p.tags or "").lower()
-            or ql in str(p.id)
-            or ql in (p.protocol or "").lower()
-        ]
+        stmt = stmt.where(func.lower(Payload.payload_type) == type.strip().casefold())
+    if pattern := _search_pattern(q):
+        stmt = stmt.where(
+            or_(
+                func.lower(Payload.summary).like(pattern, escape="\\"),
+                func.lower(Payload.tags).like(pattern, escape="\\"),
+                func.lower(Payload.protocol).like(pattern, escape="\\"),
+                cast(Payload.id, String).like(pattern, escape="\\"),
+            )
+        )
+    stmt = stmt.order_by(Payload.id.desc()).offset(offset).limit(limit)
+    items = list(db.scalars(stmt).all())
     return [payload_out(p) for p in items]
 
 
@@ -298,16 +323,18 @@ def get_payload(payload_id: int, db: Session = Depends(get_db)) -> PayloadOut:
 
 @router.get("/alerts", response_model=list[AlertOut])
 def list_alerts(
-    level: str | None = None,
-    status: str | None = "open",
+    level: str | None = Query(default=None, max_length=20),
+    status: str | None = Query(default="open", max_length=20),
+    limit: int = Query(200, ge=1, le=2000),
+    offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
 ) -> list[AlertOut]:
-    stmt = select(Alert).order_by(Alert.id.desc())
+    stmt = select(Alert)
     if status and status != "all":
         stmt = stmt.where(Alert.status == status)
-    items = list(db.scalars(stmt).all())
     if level and level != "all":
-        items = [a for a in items if a.level == level]
+        stmt = stmt.where(Alert.level == level)
+    items = list(db.scalars(stmt.order_by(Alert.id.desc()).offset(offset).limit(limit)).all())
     return [alert_out(a) for a in items]
 
 

@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
@@ -45,6 +45,7 @@ def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
 
     app.dependency_overrides[get_db] = override_get_db
     with TestClient(app, raise_server_exceptions=True) as c:
+        c.app.state.testing_engine = engine
         yield c
     app.dependency_overrides.clear()
 
@@ -112,6 +113,77 @@ def test_upload_normalizes_untrusted_filename(client: TestClient, tmp_path: Path
         )
     assert r.status_code == 200, r.text
     assert r.json()["filename"] == "escape.pcap"
+
+
+def test_task_list_enforces_limit_and_offset(client: TestClient, tmp_path: Path):
+    for filename in ("alpha.pcap", "target.pcap"):
+        pcap = tmp_path / filename
+        _build_demo_pcap(pcap)
+        with pcap.open("rb") as stream:
+            response = client.post(
+                "/api/v1/tasks/upload",
+                files={"file": (filename, stream, "application/vnd.tcpdump.pcap")},
+            )
+        assert response.status_code == 200, response.text
+
+    first_page = client.get("/api/v1/tasks", params={"limit": 1}).json()
+    second_page = client.get("/api/v1/tasks", params={"limit": 1, "offset": 1}).json()
+
+    assert [item["filename"] for item in first_page] == ["target.pcap"]
+    assert [item["filename"] for item in second_page] == ["alpha.pcap"]
+
+
+def test_session_and_payload_queries_filter_before_limit(client: TestClient, tmp_path: Path):
+    pcap = tmp_path / "filter-order.pcap"
+    _build_demo_pcap(pcap)
+    with pcap.open("rb") as stream:
+        response = client.post(
+            "/api/v1/tasks/upload",
+            files={"file": (pcap.name, stream, "application/vnd.tcpdump.pcap")},
+        )
+    assert response.status_code == 200, response.text
+
+    sessions = client.get("/api/v1/sessions", params={"q": "HTTP", "limit": 1})
+    payloads = client.get("/api/v1/payloads", params={"q": "POST", "limit": 1})
+
+    assert sessions.status_code == 200
+    assert [item["application"] for item in sessions.json()] == ["HTTP"]
+    assert payloads.status_code == 200
+    assert [item["protocol"] for item in payloads.json()] == ["HTTP"]
+
+
+def test_session_payload_ids_are_loaded_in_one_query(client: TestClient, tmp_path: Path):
+    pcap = tmp_path / "query-count.pcap"
+    _build_demo_pcap(pcap)
+    with pcap.open("rb") as stream:
+        response = client.post(
+            "/api/v1/tasks/upload",
+            files={"file": (pcap.name, stream, "application/vnd.tcpdump.pcap")},
+        )
+    assert response.status_code == 200, response.text
+
+    statements: list[str] = []
+
+    def record_select(_conn, _cursor, statement, _parameters, _context, _executemany):
+        if statement.lstrip().upper().startswith("SELECT"):
+            statements.append(statement)
+
+    engine = client.app.state.testing_engine
+    event.listen(engine, "before_cursor_execute", record_select)
+    try:
+        result = client.get("/api/v1/sessions")
+    finally:
+        event.remove(engine, "before_cursor_execute", record_select)
+
+    assert result.status_code == 200
+    assert len(result.json()) == 2
+    assert len(statements) == 2
+
+
+def test_list_query_rejects_invalid_bounds(client: TestClient):
+    assert client.get("/api/v1/tasks", params={"limit": 0}).status_code == 422
+    assert client.get("/api/v1/payloads", params={"limit": 2001}).status_code == 422
+    assert client.get("/api/v1/sessions", params={"q": "x" * 201}).status_code == 422
 
 
 @pytest.mark.parametrize(
