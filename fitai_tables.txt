@@ -1,0 +1,296 @@
+=== TABLE 0 rows=1 cols=1 ===
+一句话用法 / 把本 Word 文档放入项目根目录，并将最后一章“Codex 总执行提示词”完整发送给 Codex。UI 图片已嵌入文档，开发时应以本文档为唯一需求基准。
+=== TABLE 1 rows=5 cols=3 ===
+对象 || 使用方式 || 输出目标
+产品负责人 || 确认功能范围、MVP 边界、验收标准 || 避免开发过程频繁改需求
+UI/UX 设计师 || 依据设计系统和页面规格补充高保真稿 || 确保所有页面视觉一致
+Codex / 开发者 || 严格按执行顺序、目录、数据模型和质量门禁开发 || 交付可运行的完整工程
+测试人员 || 按验收清单、异常状态和跨平台要求测试 || 确保达到产品演示与迭代基础标准
+=== TABLE 2 rows=1 cols=1 ===
+重要原则 / 本项目不是“只画几个静态页面”。所有核心页面必须可交互、可导航、可保存状态、具备加载/空/错误状态，并能完整模拟训练、饮食记录和 AI 对话流程。
+=== TABLE 3 rows=1 cols=1 ===
+产品定位 / 一款集 AI 私人健身教练、AI 营养师、训练日志、饮食记录和身体数据分析于一体的移动端健康管理 App。
+=== TABLE 4 rows=6 cols=3 ===
+原则 || 解释 || 设计落地
+低记录成本 || 记录越麻烦，用户越容易放弃 || 所有高频操作控制在 1–3 步内完成
+结果导向 || 用户关注的是变瘦、增肌和坚持 || 首页突出完成度、剩余目标和下一行动
+可解释的 AI || AI 建议不能只有结论 || 展示建议依据、可编辑目标和一键采用
+安全优先 || 避免把应用描述为医疗诊断工具 || 伤痛场景提供保守建议和就医提示
+数据可控 || 健康数据具有隐私敏感性 || 提供权限、导出和删除数据入口
+=== TABLE 5 rows=7 cols=3 ===
+类型 || 指标 || 定义
+北极星指标 || 每周有效健康行动数 || 训练完成、饮食记录、体重记录等有效行动的总和
+激活指标 || 首日完成初始化并生成计划 || 完成用户信息、目标、训练条件与饮食偏好
+留存指标 || D7 / D30 留存 || 第 7 天与第 30 天仍有有效记录行为
+训练指标 || 周训练完成率 || 完成训练数 ÷ 计划训练数
+饮食指标 || 连续记录天数 || 至少记录两餐或达到设置阈值的连续天数
+商业指标 || 免费转 Pro 转化率 || 进入会员页后完成订阅的用户比例
+=== TABLE 6 rows=6 cols=4 ===
+用户类型 || 主要目标 || 核心痛点 || 最重要功能
+健身小白 || 开始训练并形成习惯 || 不知道练什么、动作不会、容易放弃 || AI 计划、动作教学、简单打卡
+减脂用户 || 减重与降低体脂 || 热量难计算、外食难记录、平台期焦虑 || 饮食记录、热量缺口、趋势分析
+增肌用户 || 提升力量和肌肉量 || 加重量节奏不合理、记录繁琐 || 训练日志、容量分析、渐进超负荷
+塑形用户 || 改善线条与体态 || 目标模糊、局部训练过度 || 周期计划、围度记录、动作替换
+健身达人 || 精细化管理表现 || 数据分散、复盘困难 || PR、训练容量、导出与高级分析
+=== TABLE 7 rows=6 cols=3 ===
+场景 || 触发点 || 理想路径
+早晨查看计划 || 打开 App || 首页查看今日训练、饮食目标、睡眠和 AI 建议
+健身房训练 || 点击“开始训练” || 动作说明 → 记录组数 → 休息计时 → 完成总结
+餐后记录 || 点击“记录饮食” || 拍照/搜索/语音 → 校正分量 → 加入今日饮食
+状态异常 || 输入“膝盖疼” || AI 询问严重程度 → 提供保守替代动作 → 必要时建议就医
+每周复盘 || 进入数据页 || 查看体重、热量、训练完成度和营养达成趋势
+=== TABLE 8 rows=8 cols=3 ===
+模块 || 必须功能 || 完成判定
+账户与初始化 || 启动、登录/注册 UI、用户问卷、生成计划 || 表单校验、返回、保存、完成后进入首页
+首页 || 完成度、今日训练、营养、饮水/步数/睡眠、AI 建议 || 数据联动，可进入对应模块
+训练 || 周计划、动作详情、训练执行、休息计时、总结 || 完整走通一场训练并持久化
+饮食 || 每日营养、餐次记录、搜索、手动添加、模拟识别 || 添加后立即更新当日总量
+AI || 文本聊天、快捷问题、模拟思考、结构化建议卡 || 消息历史可保存
+数据 || 体重、热量、训练完成度、营养与身体指标 || 图表自适应、范围切换正常
+个人与设置 || 资料、身体数据、会员、通知和隐私设置 || 状态更新并持久化
+=== TABLE 9 rows=5 cols=2 ===
+版本 || 重点
+V1.1 || 真实登录、云同步、真实 API、健康平台数据同步
+V1.2 || AI 食物识别、条形码、个性化食谱、智能购物清单
+V1.3 || 动作姿态识别、可穿戴设备、恢复评分、训练周期化
+V2.0 || 教练端、社区挑战、内容平台、企业健康方案
+=== TABLE 10 rows=6 cols=3 ===
+Tab || 定位 || 一级内容
+首页 || 今日行动中心 || 完成度、训练、饮食、健康指标、AI 建议
+训练 || 训练计划与执行 || 计划、动作库、训练记录
+饮食 || 每日营养管理 || 目标、餐次、食物搜索、智能记录
+AI || 智能教练与营养师 || 对话、推荐卡、训练调整、饮食建议
+我的 || 个人数据与设置 || 身体数据、会员、设备、设置、隐私
+=== TABLE 11 rows=1 cols=1 ===
+app/ /   _layout.tsx /   index.tsx /   (auth)/ /     login.tsx /     register.tsx /     onboarding.tsx /   (tabs)/ /     _layout.tsx /     home.tsx /     workout.tsx /     nutrition.tsx /     ai.tsx /     profile.tsx /   workout/ /     plan.tsx /     exercise/[id].tsx /     session/[id].tsx /     summary/[id].tsx /   nutrition/ /     add.tsx /     search.tsx /     food/[id].tsx /     recognition.tsx /   analytics/index.tsx /   body/index.tsx /   settings/index.tsx /   subscription/index.tsx
+=== TABLE 12 rows=9 cols=3 ===
+来源 || 操作 || 目标
+首页训练卡 || 点击开始训练 || 训练执行页
+首页饮食卡 || 点击卡片 || 饮食管理页
+AI 建议卡 || 点击查看建议 || AI 助手并带入上下文
+训练计划卡 || 点击卡片 || 计划详情或动作列表
+动作条目 || 点击 || 动作详情页
+饮食记录按钮 || 点击 || 底部操作面板
+数据卡片 || 点击 || 对应指标详情
+头像 || 点击 || 个人中心
+=== TABLE 13 rows=15 cols=3 ===
+Token || 色值 || 用途
+primary || #6C5CE7 || 品牌主色、主按钮、选中状态
+primaryLight || #8B7CF6 || 渐变、悬浮态、图表辅助
+primarySoft || #EEEAFE || 标签背景、AI 卡片浅底
+background || #F7F8FC || 页面背景
+surface || #FFFFFF || 卡片与输入框
+textPrimary || #15161A || 主标题与关键数据
+textSecondary || #747987 || 说明文字
+textMuted || #A4A8B2 || 弱提示与禁用状态
+success || #34C88A || 完成、达标、正向变化
+warning || #FFB44A || 提醒、接近上限
+danger || #FF647C || 删除、超标、错误
+blue || #5B9BFF || 碳水、体重趋势等数据
+orange || #FF9A5A || 脂肪、热量等数据
+border || #ECEEF3 || 极轻分割线
+=== TABLE 14 rows=7 cols=3 ===
+类别 || 建议值 || 规则
+页面边距 || 16–20 dp || 所有页面保持一致
+卡片间距 || 12–16 dp || 同级卡片使用统一节奏
+卡片圆角 || 18–24 dp || 核心大卡 22，普通卡 18
+按钮圆角 || 14–20 dp || 主按钮建议 16–18
+最小触摸区 || 44 × 44 dp || 图标按钮也必须满足
+阴影 || 低透明度软阴影 || Android 使用低 elevation，避免厚重
+=== TABLE 15 rows=7 cols=3 ===
+层级 || 建议字号 || 用途
+Display || 28–34 || 首页大型完成度、关键数据
+H1 || 24–28 || 页面主标题
+H2 || 18–22 || 模块标题
+H3 || 15–17 || 卡片标题
+Body || 14–16 || 正文和输入内容
+Caption || 11–13 || 辅助信息、时间、单位
+=== TABLE 16 rows=1 cols=1 ===
+组件验收要求 / 每个组件必须具备明确 TypeScript Props、loading/disabled 状态、足够触摸区域、文本溢出处理、无障碍标签和主题扩展能力。
+=== TABLE 17 rows=1 cols=1 ===
+还原标准 / 开发时不要求像素级复制图中文字，但布局层级、卡片密度、圆角、留白、主色、数据可视化和底部导航风格必须高度一致。
+=== TABLE 18 rows=1 cols=2 ===
+ || 今日行动中心 / 顶部问候：根据本地时间展示早上好/下午好/晚上好，显示用户昵称、头像和通知入口。 / 今日完成度：突出百分比和进度条；完成度由训练、饮食、喝水、步数等权重计算。 / 今日训练：展示训练名称、时长、强度、动作数和目标肌群，主按钮进入训练执行。 / 今日饮食：显示已摄入、目标、剩余热量，以及蛋白质/碳水/脂肪进度。 / 健康指标：饮水、步数、睡眠使用三列小卡片，点击进入详情或快速更新。 / AI 建议：基于模拟数据生成每日建议，可跳转 AI 对话并自动携带上下文。
+=== TABLE 19 rows=1 cols=2 ===
+ || 周计划和动作入口 / 顶部分段：计划 / 动作库 / 训练记录；切换后保持状态。 / 周日期选择器：显示周一到周日、日期、当前日期高亮，支持左右切换周。 / 计划卡片：每张卡包含训练名称、时长、动作数、状态和肌群图。 / 状态：未开始、进行中、已完成、休息日，颜色和按钮文案不同。 / 动作库：支持搜索、肌群筛选、器械筛选、收藏和进入详情。 / 训练记录：按日期显示时长、容量、完成动作和 PR。
+=== TABLE 20 rows=1 cols=2 ===
+ || 教学、记录与开始训练 / 媒体区：使用视频/图片占位，包含播放按钮、页码和加载失败 fallback。 / 信息区：目标肌群、辅助肌群、器械、难度、动作类型。 / 内容 Tab：详情 / 动作要点 / 常见错误 / 训练记录。 / 训练记录：展示历史组数、重量、次数、最佳成绩和 PR 标签。 / 底部固定按钮：开始第 N 组，滚动时保持可操作。 / 安全提示：动作说明中明确热身、呼吸和停止训练的警示。
+=== TABLE 21 rows=1 cols=2 ===
+ || 当日热量和餐次管理 / 日期导航：查看历史日期，未来日期不可添加已发生记录。 / 热量卡片：显示剩余、目标、已摄入，环形进度根据摄入动态变化。 / 营养素：蛋白质、碳水、脂肪显示当前值、目标值和进度条。 / 餐次列表：早餐、午餐、晚餐、加餐，显示时间、食物和总热量。 / 快速记录：主按钮弹出拍照、扫码、搜索、语音、手动添加。 / 联动：添加、删除或编辑食物后，顶部总量即时更新。
+=== TABLE 22 rows=1 cols=2 ===
+ || 私人教练与营养师对话 / 欢迎区：机器人头像、说明文案和快捷问题。 / 消息样式：用户使用紫色气泡，AI 使用浅灰卡片；支持结构化推荐。 / 输入区：文本、语音、图片、发送按钮，适配键盘和底部安全区。 / 模拟思考：600–1200ms 延迟，显示“AI 正在分析”，可选逐字展示。 / 关键词回复：根据火锅、蛋白质、膝盖、没动力、晚餐等关键词返回不同模板。 / 上下文：从首页或训练页跳入时，自动附带今日训练和营养摘要。
+=== TABLE 23 rows=1 cols=2 ===
+ || 趋势、完成度和身体变化 / 顶部分段：总览 / 训练 / 饮食 / 身体 / 习惯。 / 时间范围：周 / 月 / 3 月 / 年 / 全部，默认月。 / 体重趋势：折线图、平均值、变化值和日期。 / 热量趋势：柱状图与目标线，显示平均摄入。 / 训练完成度：柱状图、训练次数、总时长和平均完成度。 / 空状态：数据不足时展示解释和“去记录”按钮，而非空白图表。
+=== TABLE 24 rows=7 cols=2 ===
+步骤 || 字段与要求
+基础信息 || 昵称、性别、年龄、身高、当前体重、目标体重、体脂率（可选）
+健身目标 || 减脂、增肌、塑形、提升体能、保持健康
+训练经验 || 零基础、初级、中级、高级
+训练条件 || 每周天数、单次时长、地点、器械、伤病限制
+饮食偏好 || 普通、高蛋白、低碳、素食、过敏和忌口
+生成计划 || 展示 AI 生成过程，产出周计划和营养目标
+=== TABLE 25 rows=8 cols=5 ===
+星期 || 训练内容 || 时长 || 动作数 || 状态
+周一 || 胸 + 三头 || 45 分钟 || 8 || 可开始
+周二 || 背 + 二头 || 50 分钟 || 9 || 未开始
+周三 || 主动恢复 / 休息 || 20 分钟 || 3 || 休息日
+周四 || 腿部训练 || 60 分钟 || 9 || 未开始
+周五 || 肩部 + 核心 || 45 分钟 || 8 || 未开始
+周六 || 可选有氧 || 30 分钟 || 1 || 可选
+周日 || 休息 || - || - || 休息日
+=== TABLE 26 rows=1 cols=1 ===
+idle → preparing → activeSet → resting → activeSet /                        ↓                 ↓ /                     paused          nextExercise /                        ↓                 ↓ /                     resumed          completed /                                          ↓ /                                       summary
+=== TABLE 27 rows=1 cols=1 ===
+if 最近 3 次目标组全部完成 and RPE <= 8: /     建议重量增加 2.5%–5% / elif 连续 2 次无法完成最低次数: /     建议降低重量 5% 或减少一组 / elif 用户反馈疼痛: /     不自动加重量，建议替换动作并显示安全提示
+=== TABLE 28 rows=1 cols=1 ===
+安全边界 / 任何疼痛、眩晕、胸闷或严重不适场景，系统都应提示停止训练并寻求专业医疗帮助，不能继续鼓励高强度训练。
+=== TABLE 29 rows=7 cols=3 ===
+方式 || V1 实现 || 后续真实能力
+搜索食物 || 本地 Mock 食物库和搜索过滤 || 云端食物库、品牌与地区数据
+手动添加 || 完整表单和校验 || 收藏、自定义食谱
+拍照识别 || 选择图片 + 模拟识别结果 || 多菜品视觉识别与分量估算
+扫码 || 入口与模拟扫描结果 || 条形码数据库
+语音 || 入口与模拟文本解析 || 语音识别 + 自然语言营养解析
+自然语言 || 关键词解析示例 || 大模型结构化抽取
+=== TABLE 30 rows=1 cols=1 ===
+foodNutrient = nutrientPer100g × servingWeight / 100 / mealTotal = sum(foodNutrient) / dayTotal = sum(mealTotal) / remainingCalories = targetCalories - consumedCalories / progress = clamp(consumed / target, 0, 1.2)
+=== TABLE 31 rows=8 cols=3 ===
+字段 || 类型 || 校验
+餐次 || 枚举 || 早餐/午餐/晚餐/加餐，必填
+食物名称 || 文本 || 1–50 字，必填
+分量 || 数字 || 大于 0
+单位 || 枚举/文本 || g、ml、份、个、碗等
+热量 || 数字 || 0–5000 kcal
+蛋白质/碳水/脂肪 || 数字 || 均不小于 0
+时间 || 日期时间 || 默认当前时间，可编辑
+=== TABLE 32 rows=4 cols=3 ===
+角色 || 能力 || 不可做
+AI 健身教练 || 解释动作、调整训练、生成计划、分析训练表现 || 诊断伤病或替代医生
+AI 营养师 || 根据目标和剩余营养推荐饮食 || 对疾病提供治疗性饮食处方
+AI 习惯助手 || 提醒、鼓励、缩短任务、帮助复盘 || 制造焦虑或羞辱用户
+=== TABLE 33 rows=7 cols=3 ===
+关键词 || 回复类型 || 必须包含
+晚餐/吃什么 || 餐单推荐卡 || 热量、三大营养素、食材和可替换项
+火锅 || 外食策略卡 || 优先选择、控制项、记录估算
+蛋白质 || 补充建议卡 || 剩余目标和 3–5 个食物选项
+膝盖疼/疼痛 || 安全建议卡 || 停止加重、低冲击替代、就医警示
+没动力/不想练 || 行为激励卡 || 20 分钟缩短方案或最低行动
+调整计划 || 训练调整卡 || 修改前后对比和一键采用
+=== TABLE 34 rows=1 cols=1 ===
+type AIContext = { /   userProfile: UserProfile; /   todayWorkout?: WorkoutSession; /   nutritionSummary: NutritionSummary; /   recentMeasurements: BodyMeasurement[]; / }; /  / interface AIApi { /   sendMessage(input: string, context: AIContext): Promise<AIResponse>; /   recognizeFood(imageUri: string): Promise<FoodRecognitionResult>; /   adjustWorkout(request: WorkoutAdjustmentRequest): Promise<WorkoutPlan>; / }
+=== TABLE 35 rows=1 cols=1 ===
+type AIResponse = { /   id: string; /   text: string; /   category: 'general' | 'nutrition' | 'workout' | 'safety'; /   cards?: AIRecommendationCardData[]; /   actions?: AIAction[]; /   disclaimer?: string; / };
+=== TABLE 36 rows=9 cols=3 ===
+指标 || 计算/来源 || 展示
+体重趋势 || BodyMeasurement.weight || 折线图、平均值、变化值
+体脂率 || 用户手动记录或设备同步 || 折线图和当前值
+BMI || weight / height² || 当前值与范围提示
+训练容量 || Σ(重量 × 次数) || 单次、周、月趋势
+训练完成率 || 完成训练 ÷ 计划训练 || 百分比与柱状图
+热量摄入 || 每日饮食总热量 || 柱状图与目标线
+营养达成率 || 实际 ÷ 目标 || 进度条或雷达/环形图
+连续打卡 || 满足有效记录标准的连续天数 || 数字与徽章
+=== TABLE 37 rows=6 cols=2 ===
+日期 || 体重
+4/17 || 59.3 kg
+4/24 || 58.7 kg
+5/01 || 58.1 kg
+5/08 || 57.3 kg
+5/15 || 56.8 kg
+=== TABLE 38 rows=9 cols=3 ===
+能力 || 免费版 || Pro 版
+基础训练计划 || 有 || 有
+手动饮食记录 || 有 || 有
+基础数据统计 || 有 || 有
+AI 私人教练 || 限次/体验 || 不限或高额度
+AI 营养师 || 限次/体验 || 不限或高额度
+AI 图片识别 || 每日有限次 || 更多次数
+深度历史数据 || 近 30 天 || 全部
+周期化训练与报告 || 无 || 有
+=== TABLE 39 rows=8 cols=3 ===
+设置 || 类型 || 默认值
+通知 || 开关 + 分类 || 训练和饮水提醒开启
+单位 || kg/lb、cm/in || kg、cm
+主题 || 系统/浅色/深色 || 系统；V1 主实现浅色
+语言 || 中文/英文预留 || 简体中文
+数据导出 || 操作 || 生成 JSON/CSV 预留
+清除数据 || 危险操作 || 二次确认
+隐私权限 || 列表 || 相机、相册、健康数据
+=== TABLE 40 rows=1 cols=1 ===
+type ID = string; /  / type User = { /   id: ID; /   email?: string; /   profile: UserProfile; /   subscription: SubscriptionStatus; /   createdAt: string; / }; /  / type UserProfile = { /   nickname: string; /   gender?: 'male' | 'female' | 'other' | 'prefer_not_to_say'; /   age?: number; /   heightCm: number; /   currentWeightKg: number; /   targetWeightKg?: number; /   bodyFatPercent?: number; /   fitnessGoal: FitnessGoal; /   experienceLevel: ExperienceLevel; /   trainingDaysPerWeek: number; /   sessionDurationMinutes: number; /   availableEquipment: Equipment[]; /   dietaryPreferences: string[]; /   allergies: string[]; / };
+=== TABLE 41 rows=9 cols=3 ===
+Store || 职责 || 持久化
+authStore || 登录状态、初始化完成标记 || 是
+userStore || 用户资料、目标、偏好 || 是
+workoutStore || 计划、当前训练、记录、PR || 是
+nutritionStore || 目标、餐次、食物记录 || 是
+healthStore || 体重、体脂、步数、睡眠、饮水 || 是
+chatStore || 对话、思考状态、快捷建议 || 是
+settingsStore || 主题、单位、通知、隐私 || 是
+subscriptionStore || 会员方案与模拟购买状态 || 是
+=== TABLE 42 rows=1 cols=1 ===
+src/services/ /   api/ /     client.ts /     authApi.ts /     userApi.ts /     workoutApi.ts /     nutritionApi.ts /     healthApi.ts /     aiApi.ts /   mock/ /     mockAuthApi.ts /     mockWorkoutApi.ts /     mockNutritionApi.ts /     mockHealthApi.ts /     mockAiApi.ts
+=== TABLE 43 rows=1 cols=1 ===
+export interface WorkoutApi { /   getWeeklyPlan(date: string): Promise<WorkoutPlan>; /   getExercise(id: string): Promise<Exercise>; /   startWorkout(planId: string): Promise<WorkoutSession>; /   saveExerciseSet( /     sessionId: string, /     exerciseId: string, /     set: ExerciseSet /   ): Promise<void>; /   completeWorkout(sessionId: string): Promise<WorkoutSession>; / } /  / export interface NutritionApi { /   getDailySummary(date: string): Promise<NutritionSummary>; /   searchFoods(query: string): Promise<FoodItem[]>; /   addMeal(meal: Meal): Promise<Meal>; /   updateMeal(meal: Meal): Promise<Meal>; /   deleteMeal(mealId: string): Promise<void>; / }
+=== TABLE 44 rows=1 cols=1 ===
+type AppError = { /   code: 'NETWORK' | 'TIMEOUT' | 'UNAUTHORIZED' | 'VALIDATION' | 'NOT_FOUND' | 'UNKNOWN'; /   message: string; /   retryable: boolean; /   details?: unknown; / };
+=== TABLE 45 rows=12 cols=2 ===
+领域 || 技术
+移动端 || React Native + Expo + TypeScript
+路由 || Expo Router
+状态 || Zustand + AsyncStorage
+表单 || React Hook Form + Zod
+动画 || React Native Reanimated + Gesture Handler
+图片 || Expo Image
+反馈 || Expo Haptics
+视觉 || Expo Linear Gradient、React Native SVG
+图表 || Victory Native 或稳定的 RN 原生图表库
+图标 || lucide-react-native 或 @expo/vector-icons
+质量 || ESLint + Prettier + TypeScript strict
+=== TABLE 46 rows=1 cols=1 ===
+src/ /   components/ /     common/ /     home/ /     workout/ /     nutrition/ /     chat/ /     analytics/ /   constants/ /     colors.ts /     spacing.ts /     typography.ts /     radius.ts /     shadows.ts /   hooks/ /   mocks/ /   services/ /   stores/ /   types/ /   utils/ /   validators/ /   theme/
+=== TABLE 47 rows=8 cols=2 ===
+阶段 || 交付内容
+阶段 1：工程初始化 || Expo TypeScript、Router、别名、Lint、Prettier、主题、Tab 导航
+阶段 2：通用组件 || 页面容器、按钮、卡片、进度、分段控件、空状态、Skeleton、Toast
+阶段 3：核心六页 || 首页、训练、动作详情、饮食、AI、数据
+阶段 4：训练闭环 || 训练执行、计时、保存、总结、PR
+阶段 5：饮食闭环 || 搜索、添加、编辑、删除、识别模拟、营养联动
+阶段 6：用户与商业化 || 初始化、个人中心、身体数据、设置、会员
+阶段 7：质量修复 || TypeScript、Lint、布局、跨平台、持久化、异常状态
+=== TABLE 48 rows=1 cols=1 ===
+npm run typecheck / npm run lint
+=== TABLE 49 rows=7 cols=2 ===
+提交类型 || 示例
+chore || 初始化 Expo Router 和代码规范
+feat || 完成首页数据卡和导航
+feat || 实现训练执行与休息计时
+fix || 修复 Android 安全区和键盘遮挡
+refactor || 拆分 nutritionStore 与计算工具
+test || 增加营养计算和训练状态机测试
+=== TABLE 50 rows=9 cols=2 ===
+场景 || 预期
+无训练计划 || 显示空状态和生成计划按钮
+训练中杀掉 App || 再次进入可恢复或明确提示恢复
+食物分量为 0/负数 || 阻止提交并显示字段错误
+热量超标 || 显示中性提醒，数据仍可保存
+无网络 || Mock 模式正常；真实 API 模式显示重试
+超长昵称/食物名 || 截断或换行，不破坏布局
+AI 空消息 || 发送按钮禁用
+图表无数据 || 显示空状态和去记录按钮
+=== TABLE 51 rows=1 cols=1 ===
+使用方式 / 从下面“开始”到“结束”全部复制给 Codex。建议同时把本 Word 文档放到项目根目录，文件名保持不变，并要求 Codex先阅读文档再执行。
+=== TABLE 52 rows=1 cols=1 ===
+==================== CODEX 提示词开始 ====================
+=== TABLE 53 rows=1 cols=1 ===
+==================== CODEX 提示词结束 ====================
+=== TABLE 54 rows=1 cols=1 ===
+建议的首次指令 / 请先阅读项目根目录的 Word 需求文档，然后检查当前目录并直接开始开发。不要只回复计划；立刻创建和修改文件。每完成一个阶段运行 typecheck 与 lint，并修复全部错误。
+=== TABLE 55 rows=1 cols=1 ===
+mockAuthService() / mockWorkoutService() / mockNutritionService() / mockFoodRecognitionService() / mockHealthService() / mockAIChatService() / mockSubscriptionService()
+=== TABLE 56 rows=1 cols=1 ===
+EXPO_PUBLIC_API_BASE_URL=https://api.example.com / EXPO_PUBLIC_USE_MOCK_API=true / EXPO_PUBLIC_AI_PROVIDER=mock / EXPO_PUBLIC_ENABLE_FOOD_RECOGNITION=true / EXPO_PUBLIC_ENABLE_HEALTH_SYNC=false
+=== TABLE 57 rows=1 cols=1 ===
+{ /   "scripts": { /     "start": "expo start", /     "android": "expo start --android", /     "ios": "expo start --ios", /     "web": "expo start --web", /     "lint": "eslint .", /     "typecheck": "tsc --noEmit", /     "format": "prettier --write ." /   } / }
+=== TABLE 58 rows=1 cols=1 ===
+最终交付标准 / 当工程满足“可运行、核心流程完整、UI 高质量、状态可持久化、无明显类型错误、README 完整”六项标准后，才可以视为完成。

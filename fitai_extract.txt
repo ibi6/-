@@ -1,0 +1,434 @@
+[Normal] FitAI
+[Normal] AI 健身管理与饮食管理 App
+[Normal] 产品需求文档 · UI 设计规范 · 技术架构 · Codex 总执行提示词
+[Normal] 前端 UI 总览（首页、训练、动作详情、饮食、AI 助手、数据分析）
+[Normal] 最终开发版 · V1.0
+[Normal] 适用于：Codex / Claude Code / Cursor / 其他代码智能体
+[Heading 1] 文档使用说明
+[Heading 2] 文档结构
+[List Bullet] 第一部分：产品定义与业务目标
+[List Bullet] 第二部分：信息架构、UI 设计系统与核心页面
+[List Bullet] 第三部分：完整功能需求与交互流程
+[List Bullet] 第四部分：技术架构、数据模型、状态管理与 API 预留
+[List Bullet] 第五部分：工程实施计划、测试标准与交付清单
+[List Bullet] 第六部分：可直接复制给 Codex 的完整总提示词
+[Heading 1] 目录
+[Normal] 1. 产品愿景与定位
+[Normal] 2. 用户画像与核心场景
+[Normal] 3. 产品范围与版本规划
+[Normal] 4. 信息架构与导航结构
+[Normal] 5. UI 视觉系统与组件规范
+[Normal] 6. 核心页面 UI 与交互规格
+[Normal] 7. 训练系统详细需求
+[Normal] 8. 饮食系统详细需求
+[Normal] 9. AI 助手与智能推荐
+[Normal] 10. 数据分析与健康指标
+[Normal] 11. 用户、会员与设置
+[Normal] 12. 数据模型与状态管理
+[Normal] 13. API 与后端接入预留
+[Normal] 14. 工程目录与代码规范
+[Normal] 15. 实施阶段与质量门禁
+[Normal] 16. 验收标准与测试清单
+[Normal] 17. Codex 总执行提示词
+[Normal] 附录 A：Mock 数据要求
+[Normal] 附录 B：环境变量与命令
+[Normal] 附录 C：风险、安全与隐私原则
+[Heading 1] 1. 产品愿景与定位
+[Heading 2] 1.1 产品名称
+[Normal] 暂定名称：FitAI。后续可更换品牌名，但项目代码中应使用统一的 appName 配置项，避免名称散落在页面中。
+[Heading 2] 1.2 一句话定位
+[Heading 2] 1.3 核心价值主张
+[List Bullet] 不用自己制定计划：AI 根据目标、经验、训练条件和恢复状态生成并动态调整计划。
+[List Bullet] 不用复杂计算热量：通过搜索、拍照、扫码、语音和自然语言快速记录饮食。
+[List Bullet] 不用手工分析进步：系统自动汇总训练容量、PR、体重、体脂、热量和营养趋势。
+[List Bullet] 不是固定模板工具：用户数据变化后，训练和饮食建议应同步变化。
+[Heading 2] 1.4 产品原则
+[Heading 2] 1.5 北极星指标与关键指标
+[Heading 1] 2. 用户画像与核心场景
+[Heading 2] 2.1 高频用户故事
+[List Bullet] 作为健身小白，我希望回答几个问题后就能获得一周训练计划，这样我不需要自己研究课程。
+[List Bullet] 作为减脂用户，我希望拍照后自动识别一餐的大致营养，这样我可以快速记录外食。
+[List Bullet] 作为增肌用户，我希望系统根据最近三次训练表现建议加重量，这样我能科学进步。
+[List Bullet] 作为忙碌用户，我希望今天状态不好时把训练缩短为 20 分钟，而不是完全放弃。
+[List Bullet] 作为用户，我希望看到体重、热量和训练完成度的关系，从而理解结果变化。
+[List Bullet] 作为隐私敏感用户，我希望随时导出或删除自己的健康数据。
+[Heading 2] 2.2 关键使用场景
+[Heading 1] 3. 产品范围与版本规划
+[Heading 2] 3.1 V1 前端演示版范围
+[List Bullet] 完成 iOS / Android 可运行的 React Native Expo 工程。
+[List Bullet] 六个核心页面达到高保真产品演示水平。
+[List Bullet] 训练流程、饮食流程、AI 对话、身体数据更新可以完整模拟。
+[List Bullet] 使用 Mock Service 与本地持久化，不依赖真实后端。
+[List Bullet] 建立清晰 API 层和类型系统，后续可无痛接后端。
+[Heading 2] 3.2 V1 必须完成
+[Heading 2] 3.3 本阶段非目标
+[List Bullet] 不接入真实支付，但保留订阅接口和购买模拟。
+[List Bullet] 不提供医疗诊断、治疗或伤病康复处方。
+[List Bullet] 不要求实现精准食物重量识别，V1 使用可编辑的模拟结果。
+[List Bullet] 不要求实现真正的摄像头动作纠错，预留入口和服务接口。
+[List Bullet] 不构建完整社交社区，最多保留未来入口。
+[Heading 2] 3.4 后续版本
+[Heading 1] 4. 信息架构与导航结构
+[Heading 2] 4.1 底部主导航
+[Heading 2] 4.2 路由结构
+[Heading 2] 4.3 页面跳转规则
+[Heading 1] 5. UI 视觉系统与组件规范
+[Heading 2] 5.1 整体风格
+[Normal] 视觉关键词：现代、干净、高级、轻量、健康科技感、柔和圆角、大量留白。避免高饱和大面积配色、廉价拟物、过多边框和过度渐变。
+[Heading 2] 5.2 颜色系统
+[Heading 2] 5.3 间距、圆角与阴影
+[Heading 2] 5.4 字体层级
+[Heading 2] 5.5 核心组件清单
+[List Bullet] AppHeader
+[List Bullet] ScreenContainer
+[List Bullet] SafeAreaPage
+[List Bullet] PrimaryButton
+[List Bullet] SecondaryButton
+[List Bullet] IconButton
+[List Bullet] ProgressBar
+[List Bullet] CircularProgress
+[List Bullet] StatCard
+[List Bullet] MetricCard
+[List Bullet] SectionHeader
+[List Bullet] EmptyState
+[List Bullet] LoadingState
+[List Bullet] ErrorState
+[List Bullet] WorkoutCard
+[List Bullet] ExerciseCard
+[List Bullet] ExerciseSetRow
+[List Bullet] NutritionProgress
+[List Bullet] MealCard
+[List Bullet] FoodItemRow
+[List Bullet] QuickAction
+[List Bullet] ChatBubble
+[List Bullet] AIRecommendationCard
+[List Bullet] ChartCard
+[List Bullet] BottomSheet
+[List Bullet] ConfirmDialog
+[List Bullet] DateSelector
+[List Bullet] WeekCalendar
+[List Bullet] SegmentedControl
+[List Bullet] Avatar
+[List Bullet] Badge
+[List Bullet] Toast
+[List Bullet] SkeletonCard
+[Heading 1] 6. 核心页面 UI 与交互规格
+[Normal] 图 6-1：六个核心页面整体视觉参考
+[Heading 2] 6.1 首页
+[Heading 3] 交互验收点
+[List Bullet] 页面首次加载显示骨架屏；数据加载完成后平滑过渡。
+[List Bullet] 卡片均可点击且跳转正确。
+[List Bullet] 完成训练或添加饮食后，完成度和营养数据即时刷新。
+[Heading 2] 6.2 训练计划页
+[Heading 3] 交互验收点
+[List Bullet] 日期切换和 Tab 切换无闪烁。
+[List Bullet] 开始训练后计划状态变为进行中。
+[List Bullet] 训练完成后卡片显示完成状态和摘要。
+[Heading 2] 6.3 动作详情页
+[Heading 3] 交互验收点
+[List Bullet] 媒体加载失败有 fallback。
+[List Bullet] 各内容 Tab 可切换。
+[List Bullet] 底部按钮不遮挡正文，且适配安全区。
+[Heading 2] 6.4 饮食管理页
+[Heading 3] 交互验收点
+[List Bullet] 餐次添加、编辑、删除均能正确重算营养。
+[List Bullet] 热量超过目标时颜色和文案变化。
+[List Bullet] 操作面板支持手势关闭。
+[Heading 2] 6.5 AI 助手页
+[Heading 3] 交互验收点
+[List Bullet] 发送按钮禁用逻辑正确。
+[List Bullet] 键盘弹出不遮挡最新消息。
+[List Bullet] 重新进入页面可恢复历史对话。
+[Heading 2] 6.6 数据分析页
+[Heading 3] 交互验收点
+[List Bullet] 图表宽度自适应，不超出屏幕。
+[List Bullet] 时间范围切换后数据和摘要同步变化。
+[List Bullet] 无数据和错误状态有明确行动按钮。
+[Heading 1] 7. 训练系统详细需求
+[Heading 2] 7.1 用户初始化与计划生成
+[Heading 2] 7.2 默认周计划示例
+[Heading 2] 7.3 训练执行状态机
+[Heading 2] 7.4 训练执行页行为
+[List Bullet] 显示当前动作、组数、目标次数、上次重量、本次重量、本次次数和计时器。
+[List Bullet] 完成当前组后自动进入休息状态，并保存本组记录。
+[List Bullet] 支持暂停、跳过休息、延长 15/30 秒、进入下一组。
+[List Bullet] 支持跳过动作、替换动作、提前结束训练；危险操作需二次确认。
+[List Bullet] 退出页面后再次进入，应恢复正在进行的训练。
+[List Bullet] 训练完成后计算总时长、动作数、组数、训练容量、估算消耗和新 PR。
+[Heading 2] 7.5 渐进超负荷建议
+[Normal] V1 使用可解释的规则引擎模拟 AI 建议：
+[Heading 1] 8. 饮食系统详细需求
+[Heading 2] 8.1 饮食记录入口
+[Heading 2] 8.2 营养计算规则
+[Heading 2] 8.3 添加食物表单
+[Heading 2] 8.4 AI 识别模拟流程
+[List Number] 选择或拍摄图片
+[List Number] 显示上传与识别加载状态
+[List Number] 返回识别到的食物条目
+[List Number] 用户编辑名称、重量和餐次
+[List Number] 系统重新计算营养
+[List Number] 确认加入今日记录
+[Heading 2] 8.5 饮食异常和边界
+[List Bullet] 摄入超过目标：进度仍可显示至 120%，并给出中性提醒，不使用羞辱性语言。
+[List Bullet] 识别不确定：标记“估算值”，允许用户快速修改。
+[List Bullet] 食物不存在：允许创建自定义食物。
+[List Bullet] 历史日期：允许补录；未来日期默认不允许记录已食用内容。
+[List Bullet] 极端减重目标：提示目标可能不安全，并建议咨询专业人士。
+[Heading 1] 9. AI 助手与智能推荐
+[Heading 2] 9.1 AI 角色
+[Heading 2] 9.2 V1 模拟回复规则
+[Heading 2] 9.3 AI 服务接口预留
+[Heading 2] 9.4 AI 输出结构
+[Normal] 所有 AI 响应都应优先转换为结构化类型，而不是仅保存一段纯文本。
+[Heading 2] 9.5 AI 安全与信任
+[List Bullet] 说明营养和热量为估算值，尤其是外食和图片识别。
+[List Bullet] 任何涉及疾病、药物、饮食障碍或伤病的问题，提供保守信息并建议咨询专业人士。
+[List Bullet] 不承诺固定时间内减重或增肌。
+[List Bullet] AI 修改计划前展示变化摘要，并由用户确认。
+[List Bullet] 保存 AI 对话时允许用户清除历史。
+[Heading 1] 10. 数据分析与健康指标
+[Heading 2] 10.1 指标定义
+[Heading 2] 10.2 图表要求
+[List Bullet] 必须使用 React Native 兼容图表库，不使用 WebView 图表。
+[List Bullet] 图表必须自适应容器宽度，横轴标签不得溢出。
+[List Bullet] 切换时间范围时显示过渡加载，不出现旧值与新图不一致。
+[List Bullet] 目标线、平均线和数据点具有清晰图例。
+[List Bullet] 无数据时不渲染空坐标系，而是展示空状态。
+[Heading 2] 10.3 示例体重数据
+[Heading 1] 11. 用户、会员与设置
+[Heading 2] 11.1 个人中心
+[List Bullet] 头像、昵称、等级、会员状态和编辑资料入口。
+[List Bullet] 身高、体重、体脂率、目标体重。
+[List Bullet] 累计训练次数、连续打卡天数、饮食记录天数、徽章数量。
+[List Bullet] 训练计划、饮食目标、身体数据、收藏、设备、会员、通知、隐私、帮助与关于。
+[Heading 2] 11.2 会员方案
+[Heading 2] 11.3 设置项
+[Heading 1] 12. 数据模型与状态管理
+[Heading 2] 12.1 TypeScript 核心类型
+[Heading 2] 12.2 必须定义的类型
+[List Bullet] User
+[List Bullet] UserProfile
+[List Bullet] FitnessGoal
+[List Bullet] WorkoutPlan
+[List Bullet] WorkoutDay
+[List Bullet] WorkoutSession
+[List Bullet] WorkoutExercise
+[List Bullet] Exercise
+[List Bullet] ExerciseSet
+[List Bullet] ExerciseHistory
+[List Bullet] PersonalRecord
+[List Bullet] Meal
+[List Bullet] FoodItem
+[List Bullet] NutritionTarget
+[List Bullet] NutritionSummary
+[List Bullet] BodyMeasurement
+[List Bullet] HealthMetric
+[List Bullet] ChatMessage
+[List Bullet] AIRecommendation
+[List Bullet] SubscriptionPlan
+[List Bullet] AppSettings
+[Heading 2] 12.3 Zustand Store 划分
+[Heading 2] 12.4 状态管理原则
+[List Bullet] 页面局部 UI 状态放在组件内，不全部塞进 Zustand。
+[List Bullet] Store 暴露明确 action，不允许页面直接随意修改深层对象。
+[List Bullet] 派生数据使用 selector 或工具函数计算。
+[List Bullet] 持久化数据必须有版本号和迁移函数。
+[List Bullet] 训练进行中状态需要可靠恢复，避免关闭页面后丢失。
+[Heading 1] 13. API 与后端接入预留
+[Heading 2] 13.1 服务目录
+[Heading 2] 13.2 API Client 要求
+[List Bullet] baseURL 从环境变量读取。
+[List Bullet] 预留 Bearer Token 注入。
+[List Bullet] 统一超时、错误映射和日志。
+[List Bullet] 区分网络错误、业务错误、认证错误和未知错误。
+[List Bullet] 支持取消请求和有限重试结构。
+[List Bullet] Mock 与真实实现遵循同一接口。
+[Heading 2] 13.3 接口示例
+[Heading 2] 13.4 错误模型
+[Heading 1] 14. 工程目录与代码规范
+[Heading 2] 14.1 推荐技术栈
+[Heading 2] 14.2 推荐目录
+[Heading 2] 14.3 代码质量规则
+[List Bullet] TypeScript strict 开启，不大量使用 any。
+[List Bullet] 页面负责组合，复杂业务逻辑放入 hook/service/store。
+[List Bullet] 避免超大单文件；超过约 300 行应评估拆分。
+[List Bullet] 列表使用 FlatList，避免长列表使用 ScrollView 全量渲染。
+[List Bullet] 不要滥用 memo/useMemo/useCallback，只在有明确价值时使用。
+[List Bullet] 避免在 JSX 中创建大量常量对象和内联复杂函数。
+[List Bullet] 所有异步流程处理 loading、error 和 retry。
+[List Bullet] 删除未使用代码和无意义 TODO。
+[Heading 2] 14.4 图片资源规则
+[List Bullet] 训练人物和肌群图可以使用本地占位资源或合法授权资源。
+[List Bullet] 资源路径集中管理，加载失败提供 fallback。
+[List Bullet] 图片使用合适尺寸，避免加载超大原图造成内存压力。
+[List Bullet] 不要把远程不稳定链接作为关键 UI 唯一资源。
+[Heading 1] 15. 实施阶段与质量门禁
+[Heading 2] 15.1 每阶段门禁
+[List Bullet] 命令失败时必须立即修复，不能把错误留到最后。
+[List Bullet] 每完成一条核心流程，必须在 iOS 和 Android 至少各验证一次布局。
+[List Bullet] 每个页面完成后检查安全区、键盘、长文本、小屏和空状态。
+[List Bullet] 不得以“占位页”冒充已完成页面。
+[Heading 2] 15.2 建议提交粒度
+[Heading 1] 16. 验收标准与测试清单
+[Heading 2] 16.1 功能验收
+[List Bullet] □ 应用可正常启动，首次进入流程和模拟登录可用。
+[List Bullet] □ 底部五个 Tab 均能进入，返回逻辑符合平台习惯。
+[List Bullet] □ 六个核心页面视觉统一并达到演示质量。
+[List Bullet] □ 完整完成一次训练：开始、记录组、休息、下一动作、总结。
+[List Bullet] □ 完整完成一次饮食记录：选择方式、编辑、保存、总量更新。
+[List Bullet] □ AI 消息可发送，显示思考状态并返回匹配的模拟回复。
+[List Bullet] □ 数据图表可切换时间范围，数值与图表同步。
+[List Bullet] □ 用户资料、身体数据、设置和对话可以持久化。
+[Heading 2] 16.2 视觉验收
+[List Bullet] □ 页面左右边距、卡片间距和圆角一致。
+[List Bullet] □ 没有文字截断、按钮遮挡或图表溢出。
+[List Bullet] □ iPhone 刘海、底部 Home Indicator 和 Android 状态栏适配。
+[List Bullet] □ 键盘弹出后聊天输入框和表单仍可用。
+[List Bullet] □ 主色、辅助色和状态色符合设计系统。
+[List Bullet] □ 加载、空、错误和禁用状态均有完整视觉。
+[Heading 2] 16.3 工程验收
+[List Bullet] □ npm install 后可启动。
+[List Bullet] □ npx expo start 正常。
+[List Bullet] □ npm run typecheck 通过。
+[List Bullet] □ npm run lint 通过。
+[List Bullet] □ 不存在大量 any、未使用导入和明显死代码。
+[List Bullet] □ README 包含安装、结构、Mock、API 接入和已知限制。
+[List Bullet] □ .env.example 存在且不包含真实密钥。
+[List Bullet] □ 关键数据模型和服务接口有明确类型。
+[Heading 2] 16.4 边界测试
+[Heading 1] 17. Codex 总执行提示词（可直接复制）
+[Normal] 【角色与任务】
+[Normal] 你是一名资深移动端产品工程师、React Native 架构师和 UI/UX 实现专家。请直接开发一款完整的“AI 健身管理 + 饮食管理”移动端 App，项目暂定名为 FitAI。
+[Normal] 不要只输出设计方案、伪代码或零散代码片段。你必须直接检查当前项目、创建或修改文件、安装必要依赖、运行质量检查并修复错误，最终交付一个可以安装、启动、演示和继续迭代的完整工程。
+[Normal] 【需求基准】
+[Normal] 项目根目录中的《FitAI_健身饮食管理App_Codex开发执行书_最终版.docx》是唯一需求基准。先完整阅读文档，特别关注嵌入的 UI 图片、六个核心页面、数据模型、状态管理、实施阶段和验收标准。如果文档与现有代码冲突，优先保留合理的已有能力，并调整代码以满足文档需求。
+[Normal] 【技术栈】
+[Normal] 必须使用 React Native、Expo、TypeScript、Expo Router、Zustand、React Hook Form、Zod、AsyncStorage、React Native Reanimated、React Native Gesture Handler、React Native SVG、Expo Linear Gradient、Expo Image、Expo Haptics，以及稳定的 React Native 图表库。配置 ESLint、Prettier 和 TypeScript strict。优先选择稳定、清晰和易维护的实现，不要为炫技引入大量依赖。
+[Normal] 【运行与质量命令】
+[Normal] 项目必须支持 iOS、Android、Expo Go 和本地开发。必须提供并通过：
+[Normal] npm install
+npx expo start
+npm run lint
+npm run typecheck
+[Normal] 每完成一个阶段都运行 typecheck 和 lint；发现错误必须当场修复，不能留到最后。
+[Normal] 【UI 实现要求】
+[Normal] 严格参考文档中的前端 UI：浅灰背景、白色圆角卡片、紫色主品牌色、大量留白、清晰数据层级、柔和阴影、轻量动效。完成首页、训练计划、动作详情、饮食管理、AI 助手、数据分析六个核心页面，达到可用于产品演示的高保真标准。所有页面适配安全区、小屏、长文本、键盘和 Android 返回键。
+[Normal] 【核心功能】
+[Normal] 必须完整实现：
+[Normal] 1. 首次用户初始化问卷和计划生成模拟；
+[Normal] 2. 底部五个 Tab；
+[Normal] 3. 首页数据联动；
+[Normal] 4. 周训练计划、动作库和记录；
+[Normal] 5. 训练执行、组记录、休息计时、恢复和完成总结；
+[Normal] 6. 饮食热量与三大营养素管理；
+[Normal] 7. 搜索、手动、拍照识别模拟、扫码入口和语音入口；
+[Normal] 8. AI 聊天、快捷问题、思考状态和结构化建议卡；
+[Normal] 9. 体重、热量、训练完成度和营养图表；
+[Normal] 10. 个人中心、身体数据、设置和会员模拟；
+[Normal] 11. 本地持久化；
+[Normal] 12. 加载、空、错误、重试、Skeleton 和 Toast。
+[Normal] 【架构要求】
+[Normal] 使用清晰的 app 路由目录和 src 分层目录。组件、页面、store、service、mock、type、validator、theme 和 util 分离。Mock API 与未来真实 API 必须实现同一接口。不要把所有状态放在一个 store，不要让页面直接包含大量业务计算，不要大量使用 any。
+[Normal] 【数据要求】
+[Normal] 准备真实且丰富的 Mock 数据：至少 20 个训练动作、30 个常见食物、一周训练计划、多个日期的体重/热量/训练数据、AI 对话示例和会员方案。添加、编辑或删除训练/饮食数据后，相关页面和图表应立即联动。
+[Normal] 【执行顺序】
+[Normal] 严格按以下顺序执行：
+阶段 1：检查项目和初始化工程；
+阶段 2：主题系统、路由、底部导航和通用组件；
+阶段 3：完成六个核心页面；
+阶段 4：完成训练闭环；
+阶段 5：完成饮食闭环；
+阶段 6：完成用户、设置和会员；
+阶段 7：修复 TypeScript、Lint、跨平台布局和状态问题；
+阶段 8：完善 README、.env.example、已完成清单和后端接入说明。
+[Normal] 【禁止行为】
+[Normal] 禁止只给方案而不改代码；禁止留下大量占位页；禁止使用无法运行的伪依赖；禁止忽略 TypeScript 错误；禁止把所有逻辑塞在单个页面；禁止在 UI 中使用不稳定远程图片作为唯一资源；禁止在伤痛场景提供医疗诊断；禁止在完成前停止并只说“下一步可以继续”。
+[Normal] 【最终交付】
+[Normal] 最终必须交付完整代码、可运行 Expo 工程、README、环境变量示例、目录说明、Mock 数据说明、API 接入说明、已完成页面清单、未接入真实能力清单，以及最终 typecheck/lint 结果。完成后自行复查文档中的验收清单，逐项修复未达标内容。
+[Heading 1] 附录 A：Mock 数据要求
+[Heading 2] A.1 训练动作（至少 20 个）
+[List Bullet] 杠铃卧推
+[List Bullet] 哑铃卧推
+[List Bullet] 上斜哑铃卧推
+[List Bullet] 俯卧撑
+[List Bullet] 杠铃深蹲
+[List Bullet] 罗马尼亚硬拉
+[List Bullet] 传统硬拉
+[List Bullet] 腿举
+[List Bullet] 腿屈伸
+[List Bullet] 腿弯举
+[List Bullet] 引体向上
+[List Bullet] 高位下拉
+[List Bullet] 杠铃划船
+[List Bullet] 坐姿划船
+[List Bullet] 哑铃肩推
+[List Bullet] 侧平举
+[List Bullet] 面拉
+[List Bullet] 二头弯举
+[List Bullet] 绳索下压
+[List Bullet] 平板支撑
+[Heading 2] A.2 常见食物（至少 30 个）
+[List Bullet] 鸡胸肉
+[List Bullet] 鸡蛋
+[List Bullet] 牛肉
+[List Bullet] 三文鱼
+[List Bullet] 米饭
+[List Bullet] 糙米
+[List Bullet] 面条
+[List Bullet] 燕麦
+[List Bullet] 全麦面包
+[List Bullet] 红薯
+[List Bullet] 土豆
+[List Bullet] 香蕉
+[List Bullet] 苹果
+[List Bullet] 牛奶
+[List Bullet] 酸奶
+[List Bullet] 西兰花
+[List Bullet] 生菜
+[List Bullet] 番茄
+[List Bullet] 牛油果
+[List Bullet] 花生酱
+[List Bullet] 坚果
+[List Bullet] 豆腐
+[List Bullet] 虾
+[List Bullet] 金枪鱼
+[List Bullet] 玉米
+[List Bullet] 蓝莓
+[List Bullet] 蛋白粉
+[List Bullet] 奶茶
+[List Bullet] 火锅
+[List Bullet] 牛肉面
+[Heading 2] A.3 Mock 服务
+[Heading 1] 附录 B：环境变量与运行命令
+[Heading 2] B.1 .env.example
+[Heading 2] B.2 package scripts
+[Heading 2] B.3 README 必须包含
+[List Bullet] 项目简介
+[List Bullet] 技术栈
+[List Bullet] 安装与运行
+[List Bullet] 目录结构
+[List Bullet] 页面路由
+[List Bullet] Mock 模式说明
+[List Bullet] 状态持久化说明
+[List Bullet] 真实 API 接入方式
+[List Bullet] 环境变量
+[List Bullet] 已完成能力
+[List Bullet] 尚未接入能力
+[List Bullet] 常见问题
+[Heading 1] 附录 C：风险、安全与隐私原则
+[Heading 2] C.1 健康安全
+[List Bullet] 产品定位为健身与饮食管理工具，不是医疗器械。
+[List Bullet] 不提供疾病诊断、药物建议和治疗方案。
+[List Bullet] 伤痛问题使用保守语言，必要时建议停止运动和咨询专业人士。
+[List Bullet] 极端目标和低热量方案需显示风险提示。
+[Heading 2] C.2 隐私与数据
+[List Bullet] 最小化收集用户数据，仅在功能需要时请求相机、相册和健康权限。
+[List Bullet] 敏感数据不得写入日志或硬编码到仓库。
+[List Bullet] 提供清除本地数据、注销和数据导出入口。
+[List Bullet] 真实后端阶段应使用传输加密、访问控制和可审计的权限策略。
+[Heading 2] C.3 AI 透明度
+[List Bullet] 明确标注 AI 建议与食物识别可能存在误差。
+[List Bullet] 重要计划变更需用户确认。
+[List Bullet] 用户可以查看、修改和拒绝 AI 推荐。
+[List Bullet] 不要把模型回复包装成专业医疗结论。
+[Normal] — 文档结束 —

@@ -1,0 +1,28 @@
+export const Colors = {
+  primary: '#6C5CE7',
+  primaryLight: '#8B7CF6',
+  primarySoft: '#EEEAFE',
+  background: '#F7F8FC',
+  surface: '#FFFFFF',
+  textPrimary: '#15161A',
+  textSecondary: '#747987',
+  textMuted: '#A4A8B2',
+  success: '#34C88A',
+  warning: '#FFB44A',
+  danger: '#FF647C',
+  blue: '#5B9BFF',
+  orange: '#FF9A5A',
+  border: '#ECEEF3',
+  white: '#FFFFFF',
+  black: '#000000',
+  overlay: 'rgba(21, 22, 26, 0.45)',
+  chartLine: '#6C5CE7',
+  chartArea: 'rgba(108, 92, 231, 0.15)',
+  rest: '#5B9BFF',
+  calorie: '#FF9A5A',
+  protein: '#6C5CE7',
+  carbs: '#5B9BFF',
+  fat: '#FFB44A',
+} as const;
+
+export type ColorKey = keyof typeof Colors;
