@@ -4,7 +4,7 @@
  * - 生产：同源 Nginx 反代 /api
  * 如需直连后端，设置 VITE_API_BASE=http://127.0.0.1:8001/api/v1
  */
-const API_BASE = import.meta.env.VITE_API_BASE ?? '/api/v1'
+const API_BASE = import.meta.env?.VITE_API_BASE ?? '/api/v1'
 
 export class ApiError extends Error {
   status: number
@@ -12,6 +12,25 @@ export class ApiError extends Error {
     super(message)
     this.status = status
   }
+}
+
+function errorMessage(detail: unknown, fallback: string): string {
+  if (typeof detail === 'string' && detail.trim()) return detail.trim()
+  if (Array.isArray(detail)) {
+    const messages = detail
+      .map((item) => {
+        if (!item || typeof item !== 'object' || !('msg' in item)) return ''
+        return typeof item.msg === 'string' ? item.msg.trim() : ''
+      })
+      .filter(Boolean)
+    if (messages.length) return messages.join('；')
+  }
+  return fallback || '请求失败，请稍后重试'
+}
+
+function setTrimmed(sp: URLSearchParams, key: string, value?: string) {
+  const normalized = value?.trim()
+  if (normalized) sp.set(key, normalized)
 }
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
@@ -23,13 +42,9 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   if (!res.ok) {
     let message = res.statusText
     try {
-      const data = await res.json()
-      message =
-        typeof data.detail === 'string'
-          ? data.detail
-          : data.detail
-            ? JSON.stringify(data.detail)
-            : message
+      const data: unknown = await res.json()
+      const detail = data && typeof data === 'object' && 'detail' in data ? data.detail : undefined
+      message = errorMessage(detail, message)
     } catch {
       /* ignore */
     }
@@ -150,8 +165,8 @@ export const api = {
   dashboard: () => request<ApiDashboard>('/dashboard'),
   tasks: (params?: { status?: string; q?: string }) => {
     const sp = new URLSearchParams()
-    if (params?.status) sp.set('status', params.status)
-    if (params?.q) sp.set('q', params.q)
+    setTrimmed(sp, 'status', params?.status)
+    setTrimmed(sp, 'q', params?.q)
     const qs = sp.toString()
     return request<ApiTask[]>(`/tasks${qs ? `?${qs}` : ''}`)
   },
@@ -167,8 +182,8 @@ export const api = {
   sessions: (params?: { task_id?: number; protocol?: string; q?: string }) => {
     const sp = new URLSearchParams()
     if (params?.task_id != null) sp.set('task_id', String(params.task_id))
-    if (params?.protocol) sp.set('protocol', params.protocol)
-    if (params?.q) sp.set('q', params.q)
+    setTrimmed(sp, 'protocol', params?.protocol)
+    setTrimmed(sp, 'q', params?.q)
     const qs = sp.toString()
     return request<ApiSession[]>(`/sessions${qs ? `?${qs}` : ''}`)
   },
@@ -181,16 +196,16 @@ export const api = {
     const sp = new URLSearchParams()
     if (params?.task_id != null) sp.set('task_id', String(params.task_id))
     if (params?.session_id != null) sp.set('session_id', String(params.session_id))
-    if (params?.type) sp.set('type', params.type)
-    if (params?.q) sp.set('q', params.q)
+    setTrimmed(sp, 'type', params?.type)
+    setTrimmed(sp, 'q', params?.q)
     const qs = sp.toString()
     return request<ApiPayload[]>(`/payloads${qs ? `?${qs}` : ''}`)
   },
   payload: (id: number | string) => request<ApiPayload>(`/payloads/${id}`),
   alerts: (params?: { level?: string; status?: string }) => {
     const sp = new URLSearchParams()
-    if (params?.level) sp.set('level', params.level)
-    if (params?.status) sp.set('status', params.status)
+    setTrimmed(sp, 'level', params?.level)
+    setTrimmed(sp, 'status', params?.status)
     const qs = sp.toString()
     return request<ApiAlert[]>(`/alerts${qs ? `?${qs}` : ''}`)
   },
