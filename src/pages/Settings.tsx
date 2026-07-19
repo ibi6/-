@@ -174,16 +174,15 @@ export function Settings() {
                 className="field"
               />
             </Field>
-            <Field id="storage-path" label="存储位置（只读）">
-              <input
-                id="storage-path"
-                type="text"
-                value={settings.storage_path}
-                readOnly
-                aria-readonly="true"
-                className="field cursor-not-allowed bg-ink-50 text-ink-500"
-              />
-            </Field>
+            <div className="grid gap-2 sm:grid-cols-[180px_1fr] sm:items-start">
+              <div className="pt-1 text-sm text-ink-700">证据存储目录</div>
+              <div className="rounded-2xl border border-line bg-ink-50/70 px-4 py-3">
+                <code className="block break-all text-xs text-ink-600">{settings.storage_path}</code>
+                <p className="mt-1 text-[11px] leading-relaxed text-muted">
+                  由后端环境变量 UPLOAD_DIR 配置，服务重启后生效。
+                </p>
+              </div>
+            </div>
             <Toggle
               label="自动提取载荷"
               desc="任务解析完成后立即进入载荷提取阶段"

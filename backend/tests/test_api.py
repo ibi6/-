@@ -58,6 +58,14 @@ def test_health(client: TestClient):
     assert r.json()["status"] == "ok"
 
 
+def test_dashboard_does_not_invent_trends(client: TestClient):
+    data = client.get("/api/v1/dashboard").json()
+
+    assert data["capture_trend"] == 0
+    assert data["payload_trend"] == 0
+    assert data["anomaly_trend"] == 0
+
+
 def test_safe_upload_name_removes_control_characters_and_preserves_extension():
     assert _safe_upload_name("C:\\fakepath\\cap\r\nTURE.pcap") == "capTURE.pcap"
     normalized = _safe_upload_name(f"{'a' * 300}.pcap")

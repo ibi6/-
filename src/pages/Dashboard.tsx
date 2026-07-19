@@ -73,7 +73,7 @@ export function Dashboard() {
     {
       label: '捕获流量总数',
       value: data.capture_total.toLocaleString(),
-      hint: `较昨日 ↑ ${data.capture_trend}%`,
+      hint: '当前累计',
       icon: Activity,
       iconBg: 'bg-ink-900',
       iconColor: 'text-teal-300',
@@ -81,7 +81,7 @@ export function Dashboard() {
     {
       label: '提取载荷总数',
       value: data.payload_total.toLocaleString(),
-      hint: `较昨日 ↑ ${data.payload_trend}%`,
+      hint: '当前累计',
       icon: Layers,
       iconBg: 'bg-[var(--accent-soft)]',
       iconColor: 'text-[var(--accent-deep)]',
@@ -89,7 +89,7 @@ export function Dashboard() {
     {
       label: '识别应用协议',
       value: String(data.protocol_count),
-      hint: `协议种类 ${data.protocol_trend}`,
+      hint: `已识别 ${data.protocol_trend} 种`,
       icon: Network,
       iconBg: 'bg-sky-50',
       iconColor: 'text-sky-600',
