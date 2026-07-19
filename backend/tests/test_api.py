@@ -10,6 +10,7 @@ from app.api import routes as routes_mod
 from app.api.routes import _safe_upload_name
 from app.db.session import Base, get_db
 from app.main import app
+from app.models.entities import CaptureTask
 from app.services import task_runner
 from app.services.seed import _build_demo_pcap
 
@@ -46,6 +47,7 @@ def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     app.dependency_overrides[get_db] = override_get_db
     with TestClient(app, raise_server_exceptions=True) as c:
         c.app.state.testing_engine = engine
+        c.app.state.testing_session_factory = TestingSessionLocal
         yield c
     app.dependency_overrides.clear()
 
@@ -101,6 +103,26 @@ def test_upload_and_list(client: TestClient, tmp_path: Path):
     assert t["payload_count"] >= 1
     payloads = client.get("/api/v1/payloads").json()
     assert len(payloads) >= 1
+
+
+def test_reparse_rejects_an_already_active_task(client: TestClient, tmp_path: Path):
+    pcap = tmp_path / "active.pcap"
+    _build_demo_pcap(pcap)
+    with pcap.open("rb") as stream:
+        uploaded = client.post(
+            "/api/v1/tasks/upload",
+            files={"file": (pcap.name, stream, "application/vnd.tcpdump.pcap")},
+        ).json()
+
+    with client.app.state.testing_session_factory() as db:
+        task = db.get(CaptureTask, uploaded["id"])
+        task.status = "parsing"
+        db.commit()
+
+    response = client.post(f"/api/v1/tasks/{uploaded['id']}/reparse")
+
+    assert response.status_code == 409
+    assert response.json()["detail"] == "任务正在解析，请勿重复提交"
 
 
 def test_upload_rejects_invalid_pcap_magic_and_cleans_file(client: TestClient, tmp_path: Path):

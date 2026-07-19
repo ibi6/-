@@ -240,11 +240,14 @@ def reparse(task_id: int, db: Session = Depends(get_db)) -> Message:
     t = db.get(CaptureTask, task_id)
     if not t:
         raise HTTPException(404, "任务不存在")
+    if t.status in {"pending", "parsing", "extracting"}:
+        raise HTTPException(409, "任务正在解析，请勿重复提交")
     t.status = "pending"
     t.progress = 0
     t.error_message = None
     db.commit()
-    start_parse_async(task_id)
+    if start_parse_async(task_id) is False:
+        raise HTTPException(409, "任务正在解析，请勿重复提交")
     return Message(message="已重新入队解析", data={"task_id": task_id})
 
 

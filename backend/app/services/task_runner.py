@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import json
+import logging
 import threading
 import time
-import traceback
 from datetime import datetime
 from pathlib import Path
 
@@ -12,6 +12,10 @@ from sqlalchemy.orm import Session
 from app.db.session import SessionLocal
 from app.models.entities import Alert, CaptureTask, FlowSession, OpLog, Payload
 from app.services.pcap_parser import parse_pcap_file
+
+logger = logging.getLogger("payloadx.parser")
+_active_task_ids: set[int] = set()
+_active_task_lock = threading.Lock()
 
 
 def write_log(db: Session, module: str, message: str, level: str = "INFO") -> None:
@@ -125,18 +129,37 @@ def run_parse_task(task_id: int) -> None:
         db.commit()
     except Exception as exc:  # noqa: BLE001
         db.rollback()
+        logger.exception("任务 #%s 解析失败", task_id)
         task = db.get(CaptureTask, task_id)
         if task:
             task.status = "failed"
             task.progress = 0
-            task.error_message = str(exc)[:500]
-            write_log(db, "parse", f"任务 #{task_id} 失败：{exc}", "ERROR")
-            write_log(db, "parse", traceback.format_exc()[-400:], "ERROR")
+            task.error_message = "解析失败，请检查 PCAP 文件格式或服务日志"
+            write_log(db, "parse", f"任务 #{task_id} 失败：{type(exc).__name__}", "ERROR")
             db.commit()
     finally:
         db.close()
 
 
-def start_parse_async(task_id: int) -> None:
-    th = threading.Thread(target=run_parse_task, args=(task_id,), daemon=True)
-    th.start()
+def _run_and_release(task_id: int) -> None:
+    try:
+        run_parse_task(task_id)
+    finally:
+        with _active_task_lock:
+            _active_task_ids.discard(task_id)
+
+
+def start_parse_async(task_id: int) -> bool:
+    with _active_task_lock:
+        if task_id in _active_task_ids:
+            return False
+        _active_task_ids.add(task_id)
+
+    thread = threading.Thread(target=_run_and_release, args=(task_id,), daemon=True)
+    try:
+        thread.start()
+    except Exception:
+        with _active_task_lock:
+            _active_task_ids.discard(task_id)
+        raise
+    return True
