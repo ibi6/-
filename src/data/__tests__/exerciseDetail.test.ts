@@ -1,4 +1,4 @@
-import { createExerciseDetailViewModel } from '@/data/exercises';
+import { createExerciseDetailViewModel, getPlanDayStartAction } from '@/data/exercises';
 
 describe('exercise detail view model', () => {
   it('normalizes an array route parameter and exposes complete Chinese exercise details', () => {
@@ -18,6 +18,8 @@ describe('exercise detail view model', () => {
           reps: '8 次',
           rest: '2 分钟',
         },
+        safetyNotice:
+          '出现尖锐疼痛、肿胀或关节不适时，请立即停止训练，并尽快就医或联系医疗专业人员。',
       }),
     );
     expect(detail?.cues.length).toBeGreaterThan(0);
@@ -40,5 +42,11 @@ describe('exercise detail view model', () => {
       label: '返回训练计划',
       route: '/(tabs)/workout',
     });
+  });
+
+  it('keeps a start entry for every training day including completed days', () => {
+    expect(getPlanDayStartAction(false, false)).toEqual({ label: '开始' });
+    expect(getPlanDayStartAction(false, true)).toEqual({ label: '再次训练' });
+    expect(getPlanDayStartAction(true, false)).toBeNull();
   });
 });

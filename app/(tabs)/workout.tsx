@@ -6,7 +6,7 @@ import { Button, Card, Chip, EmptyState, Screen, SectionHeader } from '@/compone
 import { Colors, Spacing, Typography } from '@/theme';
 import { useWorkoutStore } from '@/stores';
 import { weekdayLabel, formatDuration } from '@/utils/date';
-import { getExerciseById } from '@/data';
+import { getExerciseById, getPlanDayStartAction } from '@/data/exercises';
 import type { PlanDay } from '@/types';
 
 export default function WorkoutTab() {
@@ -75,6 +75,7 @@ export default function WorkoutTab() {
       ) : (
         days.map((day) => {
           const done = completedDates.has(day.date);
+          const startAction = getPlanDayStartAction(day.isRestDay, done);
           return (
             <Card key={day.date} style={styles.dayCard}>
               <View style={styles.dayHeader}>
@@ -125,8 +126,13 @@ export default function WorkoutTab() {
                   })}
                 </View>
               ) : null}
-              {!day.isRestDay && !done ? (
-                <Button title="开始" size="sm" onPress={() => onStart(day)} style={styles.startBtn} />
+              {startAction ? (
+                <Button
+                  title={startAction.label}
+                  size="sm"
+                  onPress={() => onStart(day)}
+                  style={styles.startBtn}
+                />
               ) : null}
             </Card>
           );

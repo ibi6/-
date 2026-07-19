@@ -119,9 +119,7 @@ export default function ExerciseDetailScreen() {
           </View>
         ))}
         {segment === 'mistakes' ? (
-          <Text style={styles.safetyText}>
-            出现尖锐疼痛、肿胀或关节不适时，请立即停止训练并寻求专业建议。
-          </Text>
+          <Text style={styles.safetyText}>{detail.safetyNotice}</Text>
         ) : null}
       </Card>
 
@@ -147,8 +145,12 @@ export default function ExerciseDetailScreen() {
 function DetailCard({ label, value }: { label: string; value: string }) {
   return (
     <View style={styles.detailCard}>
-      <Text style={styles.detailLabel}>{label}</Text>
-      <Text style={styles.detailValue}>{value}</Text>
+      <Text style={styles.detailLabel} numberOfLines={1}>
+        {label}
+      </Text>
+      <Text style={styles.detailValue} numberOfLines={2} ellipsizeMode="tail">
+        {value}
+      </Text>
     </View>
   );
 }
@@ -176,14 +178,16 @@ function SegmentButton({
   return (
     <Pressable
       onPress={onPress}
+      disabled={selected}
       style={({ pressed }) => [
         styles.segmentButton,
         selected && styles.segmentButtonSelected,
         pressed && styles.pressed,
       ]}
       accessibilityRole="tab"
-      accessibilityState={{ selected }}
+      accessibilityState={{ selected, disabled: selected }}
       accessibilityLabel={label}
+      accessibilityHint={selected ? '当前已显示' : `切换到${label}`}
     >
       <Text style={[styles.segmentLabel, selected && styles.segmentLabelSelected]}>{label}</Text>
     </Pressable>
@@ -215,7 +219,7 @@ const styles = StyleSheet.create({
   media: {
     minHeight: 220,
     overflow: 'hidden',
-    borderRadius: Radius.xl,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
     padding: Spacing.xxl,
@@ -263,7 +267,12 @@ const styles = StyleSheet.create({
     ...Shadows.soft,
   },
   detailLabel: { ...Typography.label },
-  detailValue: { ...Typography.bodyMedium, color: Colors.textPrimary, marginTop: Spacing.xs },
+  detailValue: {
+    ...Typography.bodyMedium,
+    color: Colors.textPrimary,
+    marginTop: Spacing.xs,
+    flexShrink: 1,
+  },
   sectionTitle: { ...Typography.h3, marginTop: Spacing.xxl, marginBottom: Spacing.md },
   metrics: { flexDirection: 'row', gap: Spacing.sm },
   metric: {

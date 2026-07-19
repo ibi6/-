@@ -71,3 +71,37 @@ Received: undefined
 
 - 无已知功能问题。
 - 本次未启动真机或模拟器做视觉点按回归；静态类型、Lint、纯逻辑测试与全量 Jest 均已覆盖并通过。
+
+## 审查修复（第二轮）
+
+### 修复内容
+
+- 为所有非休息训练日保留独立启动入口：未完成显示“开始”，已完成显示“再次训练”；训练日卡片本身仍不是可点击容器，未恢复嵌套 Pressable。
+- 将启动入口条件抽取为 `getPlanDayStartAction` 纯函数，并由训练页真实调用。
+- 将医疗安全文案纳入详情视图模型并由详情页真实展示：出现尖锐疼痛、肿胀或关节不适时立即停止，并尽快就医或联系医疗专业人员。
+- 媒体大卡圆角调整为精确 `22`。
+- `DetailCard` 标签限制为 1 行，值限制为 2 行并使用尾部省略，避免长文本挤压布局。
+- 当前已选分段实际设置 `disabled`，同步暴露 `selected / disabled` 无障碍状态和明确提示，避免无效重复切换。
+
+### 第二轮 RED
+
+命令：
+
+```text
+npm test -- src/data/__tests__/exerciseDetail.test.ts --runInBand
+```
+
+结果：退出码 1；1 个测试套件中 2 个失败、8 个通过。失败分别为：
+
+- 详情视图模型缺少期望的 `safetyNotice` 医疗安全文案。
+- `getPlanDayStartAction` 为 `undefined`，已完成训练日没有可测试的启动入口决策。
+
+### 第二轮 GREEN / REFACTOR
+
+同一聚焦命令结果：退出码 0；1 个测试套件、10 个测试全部通过，0 快照，耗时 1.53 秒。
+
+### 第二轮全量验证
+
+- `npm run typecheck`：退出码 0，`tsc --noEmit` 通过，无 warning。
+- `npm run lint`：退出码 0，ESLint 通过，无 warning。
+- `npm test -- --runInBand`：退出码 0；13 个测试套件、59 个测试全部通过，0 快照，耗时 4.986 秒，无 warning。

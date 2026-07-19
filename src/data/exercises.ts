@@ -346,6 +346,7 @@ export type ExerciseDetailViewModel = {
   };
   cues: string[];
   commonMistakes: string[];
+  safetyNotice: string;
   primaryAction: {
     label: string;
     route: '/workout/session' | '/(tabs)/workout';
@@ -392,6 +393,14 @@ export function normalizeExerciseRouteId(routeId: unknown): string | null {
   return normalized.length > 0 ? normalized : null;
 }
 
+export function getPlanDayStartAction(
+  isRestDay: boolean,
+  isCompleted: boolean,
+): { label: '开始' | '再次训练' } | null {
+  if (isRestDay) return null;
+  return { label: isCompleted ? '再次训练' : '开始' };
+}
+
 function formatRestDuration(seconds: number): string {
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = seconds % 60;
@@ -425,6 +434,8 @@ export function createExerciseDetailViewModel(
     },
     cues: exercise.cues,
     commonMistakes: exercise.commonMistakes,
+    safetyNotice:
+      '出现尖锐疼痛、肿胀或关节不适时，请立即停止训练，并尽快就医或联系医疗专业人员。',
     primaryAction: hasActiveSession
       ? { label: '进入当前训练', route: '/workout/session' }
       : { label: '返回训练计划', route: '/(tabs)/workout' },
