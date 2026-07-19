@@ -825,7 +825,7 @@ Expected: 报告内容只包含真实执行结果。
 **Files:**
 - Verify: entire repository
 
-- [ ] **Step 1: 从当前锁文件执行最终自动回归**
+- [x] **Step 1: 从当前锁文件执行最终自动回归**
 
 Run:
 
@@ -842,7 +842,7 @@ Pop-Location
 
 Expected: 全部命令 exit code 0。
 
-- [ ] **Step 2: 做敏感信息和占位内容审计**
+- [x] **Step 2: 做敏感信息和占位内容审计**
 
 Run:
 
@@ -854,7 +854,7 @@ git status --short
 
 Expected: 无密钥、私钥、本机绝对路径或未完成占位；仅预期项目文件有改动。
 
-- [ ] **Step 3: 检查完整提交和远端关系**
+- [x] **Step 3: 检查完整提交和远端关系**
 
 Run:
 

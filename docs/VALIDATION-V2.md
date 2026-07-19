@@ -78,6 +78,8 @@ npm run lint           PASS（oxlint）
 npm run build          PASS（TypeScript + Vite production build）
 ```
 
+最终锁文件复验时，第一次 `npm ci` 因正在运行的 Vite/Preview 占用 `lightningcss` 原生模块而收到 Windows `EPERM`。停止本项目的 5173/4173 进程后重新执行，`npm ci` 成功安装 86 个包，随后完整前端检查全部通过。这是运行中二进制文件锁定，不是依赖或代码失败。
+
 生产构建关键产物：
 
 - 主入口：257.34kB，gzip 82.11kB。
@@ -241,4 +243,3 @@ npm run dev
 | 可维护性 | 9.1 / 10 | 能力常量、分层组件、自动测试、Lint、设计/实施/验收文档齐全 |
 
 **综合：9.0 / 10。** 当前状态适合毕业设计演示、实验室、本地取证与教学场景。
-
