@@ -866,7 +866,7 @@ git remote get-url origin
 
 Expected: 所有任务均有提交，远端 URL 为 `https://github.com/ibi6/-.git`。
 
-- [ ] **Step 4: 推送当前分支**
+- [x] **Step 4: 推送当前分支**
 
 Run:
 
