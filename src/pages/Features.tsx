@@ -12,32 +12,32 @@ const features = [
   {
     icon: Binary,
     title: '载荷内容特征',
-    desc: '提取 HTTP/JSON/二进制等载荷，生成长度、熵值、关键字命中等特征。',
-    tags: ['长度', '熵值', '关键字'],
+    desc: '提取 HTTP、DNS、TLS 与通用二进制载荷，生成长度、摘要、Hex 与关键字命中。',
+    tags: ['长度', '摘要', '关键字'],
   },
   {
     icon: Fingerprint,
     title: '应用指纹',
-    desc: '基于端口、SNI、User-Agent、MQTT Topic 等识别应用类型。',
-    tags: ['SNI', 'UA', 'Topic'],
+    desc: '基于端口与载荷前缀识别 HTTP、DNS、TLS 等应用类型。',
+    tags: ['端口', '载荷前缀', '协议'],
   },
   {
     icon: Shield,
     title: '异常行为特征',
-    desc: '大流量连接、非常用端口、敏感字段传输等行为规则打分。',
-    tags: ['异常流量', '敏感字段', '评分'],
+    desc: '对明文口令等敏感字段生成可解释告警与风险级别。',
+    tags: ['敏感字段', '告警', '风险级别'],
   },
 ]
 
 const sampleRows = [
-  { name: 'pkt_len_mean', value: '842.3', type: '数值' },
-  { name: 'payload_entropy', value: '6.21', type: '数值' },
+  { name: 'flow_protocol', value: 'TCP', type: '类别' },
+  { name: 'payload_size', value: '150', type: '数值' },
   { name: 'http_method', value: 'POST', type: '类别' },
-  { name: 'tls_sni', value: 'cdn.example.com', type: '字符串' },
-  { name: 'mqtt_topic', value: 'sensor/temp', type: '字符串' },
+  { name: 'dns_qname', value: 'portal.campus.edu', type: '字符串' },
+  { name: 'tls_encrypted', value: 'true', type: '布尔' },
   { name: 'sensitive_hit', value: 'password', type: '标签' },
-  { name: 'inter_arrival_ms', value: '12.4', type: '数值' },
-  { name: 'app_label', value: 'REST API', type: '标签' },
+  { name: 'severity', value: 'high', type: '级别' },
+  { name: 'app_label', value: 'HTTP', type: '标签' },
 ]
 
 export function Features() {
@@ -45,7 +45,7 @@ export function Features() {
     <div>
       <PageHeader
         title="特征分析"
-        subtitle="从会话与载荷中抽取可用于识别与检测的特征（演示数据）"
+        subtitle="基于当前解析结果的可解释字段与教学示例"
       />
 
       <div className="mb-5 grid gap-4 md:grid-cols-2">
@@ -75,7 +75,7 @@ export function Features() {
       </div>
 
       <Card>
-        <CardHeader title="样例特征向量" />
+        <CardHeader title="规则特征示例" subtitle="教学展示，不代表独立机器学习模型" />
         <CardBody className="!p-0">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[520px] text-left text-[13px]">

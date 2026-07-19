@@ -3,8 +3,10 @@ import { PageHeader } from '../components/PageHeader'
 import { Card, CardBody } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
 import { ErrorState, PageLoading } from '../components/ui/Loading'
+import { EmptyState } from '../components/ui/EmptyState'
 import { api, type ApiAlert } from '../lib/api'
 import { cn } from '../lib/cn'
+import { formatTime } from '../lib/format'
 
 const levelStyle: Record<string, string> = {
   high: 'bg-rose-50 text-rose-700 ring-rose-100',
@@ -58,14 +60,14 @@ export function Alerts() {
     <div>
       <PageHeader title="告警管理" subtitle="解析过程中规则命中的敏感与异常事件" />
 
-      <div className="mb-4 flex flex-wrap gap-2">
+      <div className="chip-scroll mb-4 flex gap-2 overflow-x-auto pb-1">
         {filters.map((f) => (
           <button
             key={f.key}
             type="button"
             onClick={() => setLevel(f.key)}
             className={cn(
-              'rounded-full px-3.5 py-1.5 text-xs font-medium transition',
+              'focus-ring min-h-11 shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium transition',
               level === f.key
                 ? 'bg-[var(--accent-deep)] text-[var(--accent-contrast)] shadow-sm'
                 : 'border border-line bg-white text-ink-600 hover:bg-ink-50',
@@ -76,9 +78,49 @@ export function Alerts() {
         ))}
       </div>
 
-      <Card>
-        <CardBody className="!p-0">
-          <div className="overflow-x-auto">
+      {list.length === 0 ? (
+        <EmptyState title="暂无匹配告警" description="当前筛选条件下没有告警记录。" />
+      ) : (
+        <>
+          <div className="space-y-3 sm:hidden">
+            {list.map((alert) => (
+              <Card key={alert.id} className="p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <span
+                    className={cn(
+                      'rounded-full px-2.5 py-0.5 text-[11px] font-medium ring-1 ring-inset',
+                      levelStyle[alert.level] ?? levelStyle.info,
+                    )}
+                  >
+                    {levelLabel[alert.level] ?? alert.level}
+                  </span>
+                  <span className="font-mono text-[10px] text-muted">
+                    {alert.created_at ? formatTime(alert.created_at) : '—'}
+                  </span>
+                </div>
+                <h2 className="mt-3 text-sm font-semibold text-ink-900">{alert.title}</h2>
+                <p className="mt-1 break-words font-mono text-xs leading-relaxed text-ink-600">
+                  {alert.detail}
+                </p>
+                <div className="mt-4 flex items-center justify-between border-t border-line pt-3">
+                  <span className="text-xs text-muted">{alert.status === 'open' ? '待处理' : '已处理'}</span>
+                  {alert.status === 'open' ? (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => void api.resolveAlert(alert.id).then(load)}
+                    >
+                      标记已处理
+                    </Button>
+                  ) : null}
+                </div>
+              </Card>
+            ))}
+          </div>
+
+          <Card className="hidden sm:block">
+            <CardBody className="!p-0">
+              <div className="overflow-x-auto">
             <table className="w-full min-w-[720px] text-left text-[13px]">
               <thead>
                 <tr className="border-b border-black/[0.04] text-muted">
@@ -122,9 +164,11 @@ export function Alerts() {
                 ))}
               </tbody>
             </table>
-          </div>
-        </CardBody>
-      </Card>
+              </div>
+            </CardBody>
+          </Card>
+        </>
+      )}
     </div>
   )
 }

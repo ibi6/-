@@ -27,6 +27,7 @@ export function PayloadDetail() {
   const [tab, setTab] = useState<Tab>('preview')
   const [copied, setCopied] = useState(false)
   const [copyError, setCopyError] = useState('')
+  const [hexColumns, setHexColumns] = useState(16)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
 
@@ -41,7 +42,12 @@ export function PayloadDetail() {
           const sessions = await api.sessions({ task_id: p.task_id })
           setSession(sessions.find((s) => s.id === p.session_id) ?? null)
         }
-        setTask(await api.task(p.task_id))
+        const [loadedTask, loadedSettings] = await Promise.all([
+          api.task(p.task_id),
+          api.settings().catch(() => null),
+        ])
+        setTask(loadedTask)
+        if (loadedSettings) setHexColumns(loadedSettings.hex_columns)
       } catch (e) {
         setError(e instanceof Error ? e.message : '加载失败')
       } finally {
@@ -79,7 +85,7 @@ export function PayloadDetail() {
         title="载荷详情"
         subtitle={payload.summary}
         actions={
-          <div className="flex gap-2">
+          <div className="flex w-full flex-wrap gap-2 sm:w-auto">
             <Button variant="secondary" size="sm" onClick={() => void copyPreview()}>
               {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
               {copied ? '已复制' : '复制内容'}
@@ -109,7 +115,7 @@ export function PayloadDetail() {
         </div>
       ) : null}
 
-      <div className="mb-5 grid min-w-0 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mb-5 grid min-w-0 grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         {[
           { label: '载荷 ID', value: String(payload.id) },
           { label: 'Content-Type', value: payload.content_type },
@@ -127,7 +133,7 @@ export function PayloadDetail() {
       </div>
 
       <div className="grid min-w-0 gap-5 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
+        <Card className="lg:col-span-2 lg:self-start">
           <div
             className="flex flex-wrap gap-1 border-b border-black/[0.04] px-2 pt-2"
             role="tablist"
@@ -166,7 +172,7 @@ export function PayloadDetail() {
                   {payload.preview}
                 </pre>
               )}
-              {tab === 'hex' && <HexViewer hex={payload.hex_sample || ''} />}
+              {tab === 'hex' && <HexViewer hex={payload.hex_sample || ''} columns={hexColumns} />}
               {tab === 'ascii' && (
                 <pre className="max-h-[480px] overflow-auto rounded-2xl border border-line bg-[#fafbfc] p-4 font-mono text-xs text-ink-800">
                   {payload.ascii_sample}

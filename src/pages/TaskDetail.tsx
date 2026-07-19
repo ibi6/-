@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft, Binary, Network } from 'lucide-react'
 import { PageHeader } from '../components/PageHeader'
@@ -16,9 +16,11 @@ export function TaskDetail() {
   const [sessions, setSessions] = useState<ApiSession[]>([])
   const [payloads, setPayloads] = useState<ApiPayload[]>([])
   const [error, setError] = useState('')
+  const [actionError, setActionError] = useState('')
   const [loading, setLoading] = useState(true)
+  const [reparsing, setReparsing] = useState(false)
 
-  const load = async () => {
+  const load = useCallback(async () => {
     try {
       const t = await api.task(id)
       setTask(t)
@@ -34,14 +36,31 @@ export function TaskDetail() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [id])
 
   useEffect(() => {
     void load()
+  }, [load])
+
+  useEffect(() => {
+    if (!task || !['pending', 'parsing', 'extracting'].includes(task.status)) return
     const timer = setInterval(() => void load(), 2500)
     return () => clearInterval(timer)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id])
+  }, [load, task])
+
+  const reparseTask = async () => {
+    if (!task) return
+    setReparsing(true)
+    setActionError('')
+    try {
+      await api.reparse(task.id)
+      await load()
+    } catch (cause) {
+      setActionError(cause instanceof Error ? cause.message : '重新解析失败')
+    } finally {
+      setReparsing(false)
+    }
+  }
 
   if (loading && !task) return <PageLoading />
   if (error || !task) {
@@ -54,13 +73,14 @@ export function TaskDetail() {
         title={task.name}
         subtitle={`${task.filename} · #${task.id}`}
         actions={
-          <div className="flex gap-2">
+          <div className="flex w-full flex-wrap gap-2 sm:w-auto">
             <Button
               variant="secondary"
               size="sm"
-              onClick={() => void api.reparse(task.id).then(load)}
+              onClick={() => void reparseTask()}
+              disabled={reparsing || ['pending', 'parsing', 'extracting'].includes(task.status)}
             >
-              重新解析
+              {reparsing ? '正在入队…' : '重新解析'}
             </Button>
             <Link to="/capture">
               <Button variant="secondary" size="sm">
@@ -72,7 +92,13 @@ export function TaskDetail() {
         }
       />
 
-      <div className="mb-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {actionError ? (
+        <div role="alert" className="mb-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          {actionError}
+        </div>
+      ) : null}
+
+      <div className="mb-5 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         {[
           { label: '状态', node: <StatusBadge status={task.status as TaskStatus} /> },
           { label: '文件大小', node: <span className="font-mono">{formatBytes(task.file_size)}</span> },
@@ -93,7 +119,7 @@ export function TaskDetail() {
             ),
           },
         ].map((item) => (
-          <Card key={item.label} className="p-4">
+          <Card key={item.label} className="min-w-0 p-4">
             <p className="text-xs text-muted">{item.label}</p>
             <div className="mt-2 text-ink-900">{item.node}</div>
           </Card>

@@ -11,7 +11,7 @@
     "dev": "vite --host 127.0.0.1 --port 5173",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "test": "node --test --experimental-strip-types src/config/navigation.test.ts src/lib/api.test.ts src/lib/file-validation.test.ts src/theme/themes.test.ts",
+    "test": "node --test --experimental-strip-types src/config/capabilities.test.ts src/config/navigation.test.ts src/lib/api.test.ts src/lib/file-validation.test.ts src/theme/themes.test.ts",
     "preview": "vite preview",
     "backend": "powershell -ExecutionPolicy Bypass -File ./scripts/start-backend.ps1",
     "start:all": "powershell -ExecutionPolicy Bypass -File ./scripts/start-all.ps1"

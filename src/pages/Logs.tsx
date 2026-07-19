@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { PageHeader } from '../components/PageHeader'
 import { Card, CardBody } from '../components/ui/Card'
 import { ErrorState, PageLoading } from '../components/ui/Loading'
+import { EmptyState } from '../components/ui/EmptyState'
 import { api, type ApiLog } from '../lib/api'
 import { formatTime } from '../lib/format'
 
@@ -38,9 +39,30 @@ export function Logs() {
   return (
     <div>
       <PageHeader title="日志管理" subtitle="上传、解析与系统运行日志" />
-      <Card>
-        <CardBody className="!p-0">
-          <div className="overflow-x-auto">
+      {logs.length === 0 ? (
+        <EmptyState title="暂无运行日志" description="完成上传或解析操作后，这里会出现可审计记录。" />
+      ) : (
+        <>
+          <div className="space-y-3 sm:hidden">
+            {logs.map((log) => (
+              <Card key={log.id} className="p-4">
+                <div className="flex items-center justify-between gap-3 font-mono text-[11px]">
+                  <span className={`font-semibold ${levelColor[log.level] ?? 'text-ink-600'}`}>
+                    {log.level}
+                  </span>
+                  <span className="text-muted">{log.created_at ? formatTime(log.created_at) : '—'}</span>
+                </div>
+                <p className="mt-3 break-words text-sm leading-relaxed text-ink-700">{log.message}</p>
+                <p className="mt-2 font-mono text-[10px] uppercase tracking-wider text-[var(--accent-deep)]">
+                  {log.module}
+                </p>
+              </Card>
+            ))}
+          </div>
+
+          <Card className="hidden sm:block">
+            <CardBody className="!p-0">
+              <div className="overflow-x-auto">
             <table className="w-full min-w-[800px] text-left font-mono text-[12px]">
               <thead>
                 <tr className="border-b border-black/[0.04] bg-[#fafbfc] text-muted">
@@ -65,9 +87,11 @@ export function Logs() {
                 ))}
               </tbody>
             </table>
-          </div>
-        </CardBody>
-      </Card>
+              </div>
+            </CardBody>
+          </Card>
+        </>
+      )}
     </div>
   )
 }

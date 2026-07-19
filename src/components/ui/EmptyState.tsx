@@ -3,7 +3,7 @@ import { cn } from '../../lib/cn'
 
 export function EmptyState({
   title = '暂无数据',
-  description = '上传 PCAP/PCAPNG 文件后，系统将自动解析并提取应用层载荷。',
+  description = '上传经典 PCAP/CAP 文件后，系统将自动解析并提取应用层载荷。',
   action,
   className,
 }: {

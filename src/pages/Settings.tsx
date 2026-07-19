@@ -7,22 +7,8 @@ import { ProtocolBadge } from '../components/ui/Badge'
 import { Card, CardBody, CardHeader } from '../components/ui/Card'
 import { ErrorState, PageLoading } from '../components/ui/Loading'
 import { api, type ApiSettings } from '../lib/api'
-import type { Protocol } from '../types'
-import { cn } from '../lib/cn'
 import { useTheme } from '../theme/useTheme'
-
-const allProtocols: Protocol[] = [
-  'HTTP',
-  'HTTPS',
-  'DNS',
-  'FTP',
-  'SMTP',
-  'TLS',
-  'TCP',
-  'UDP',
-  'MQTT',
-  'WebSocket',
-]
+import { V1_PROTOCOLS } from '../config/capabilities'
 
 const defaults: ApiSettings = {
   max_upload_mb: 512,
@@ -31,43 +17,35 @@ const defaults: ApiSettings = {
   retain_days: 30,
   hex_columns: 16,
   storage_path: './uploads',
-  enabled_protocols: allProtocols,
+  enabled_protocols: [...V1_PROTOCOLS],
 }
 
 export function Settings() {
   const { theme } = useTheme()
-  const [settings, setSettings] = useState<ApiSettings>(defaults)
+  const [settings, setSettings] = useState<ApiSettings | null>(null)
   const [saved, setSaved] = useState(false)
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  useEffect(() => {
-    ;(async () => {
-      try {
-        setSettings(await api.settings())
-      } catch (e) {
-        setError(e instanceof Error ? e.message : '加载失败')
-      } finally {
-        setLoading(false)
-      }
-    })()
-  }, [])
-
-  const toggleProtocol = (p: Protocol) => {
-    setSettings((s) => {
-      const enabled = s.enabled_protocols.includes(p)
-      return {
-        ...s,
-        enabled_protocols: enabled
-          ? s.enabled_protocols.filter((x) => x !== p)
-          : [...s.enabled_protocols, p],
-      }
-    })
-    setSaved(false)
+  const load = async () => {
+    setLoading(true)
+    setError('')
+    try {
+      setSettings(await api.settings())
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '加载失败')
+    } finally {
+      setLoading(false)
+    }
   }
 
+  useEffect(() => {
+    void load()
+  }, [])
+
   const save = async () => {
+    if (!settings) return
     setSaving(true)
     setSaved(false)
     setError('')
@@ -83,15 +61,15 @@ export function Settings() {
   }
 
   if (loading) return <PageLoading />
-  if (error && !settings) return <ErrorState message={error} />
+  if (!settings) return <ErrorState message={error || '配置加载失败'} onRetry={load} />
 
   return (
     <div>
       <PageHeader
         title="系统配置"
-        subtitle="强调色、解析参数与协议插件"
+        subtitle="界面主题、上传边界与 Hex 展示参数"
         actions={
-          <div className="flex gap-2">
+          <div className="flex w-full flex-wrap gap-2 sm:w-auto">
             <Button
               variant="secondary"
               size="sm"
@@ -102,7 +80,7 @@ export function Settings() {
               }}
             >
               <RotateCcw className="h-4 w-4" />
-              恢复默认
+              恢复推荐值
             </Button>
             <Button size="sm" onClick={() => void save()} disabled={saving} aria-live="polite">
               <Save className="h-4 w-4" />
@@ -160,20 +138,6 @@ export function Settings() {
                 ))}
               </select>
             </Field>
-            <Field id="retain-days" label="数据保留天数">
-              <input
-                id="retain-days"
-                type="number"
-                min={1}
-                max={365}
-                value={settings.retain_days}
-                onChange={(e) => {
-                  setSettings({ ...settings, retain_days: Number(e.target.value) })
-                  setSaved(false)
-                }}
-                className="field"
-              />
-            </Field>
             <div className="grid gap-2 sm:grid-cols-[180px_1fr] sm:items-start">
               <div className="pt-1 text-sm text-ink-700">证据存储目录</div>
               <div className="rounded-2xl border border-line bg-ink-50/70 px-4 py-3">
@@ -183,49 +147,28 @@ export function Settings() {
                 </p>
               </div>
             </div>
-            <Toggle
-              label="自动提取载荷"
-              desc="任务解析完成后立即进入载荷提取阶段"
-              checked={settings.auto_extract}
-              onChange={(v) => {
-                setSettings({ ...settings, auto_extract: v })
-                setSaved(false)
-              }}
-            />
-            <Toggle
-              label="深度协议检测 (DPI)"
-              desc="基于载荷特征识别加密流量上的应用类型"
-              checked={settings.deep_inspection}
-              onChange={(v) => {
-                setSettings({ ...settings, deep_inspection: v })
-                setSaved(false)
-              }}
-            />
+            <div className="rounded-2xl border border-[var(--accent-border)] bg-[var(--accent-soft)] px-4 py-3">
+              <p className="text-sm font-medium text-[var(--accent-deep)]">v1.0 固定解析流水线</p>
+              <p className="mt-1 text-xs leading-relaxed text-ink-600">
+                上传后自动完成会话重组、载荷提取与敏感字段检查。登录、多用户和规则插件属于后续路线图。
+              </p>
+            </div>
           </CardBody>
         </Card>
 
         <Card>
-          <CardHeader title="启用协议插件" />
+          <CardHeader title="当前解析范围" subtitle="当前版本真实支持或识别的协议" />
           <CardBody>
-            <div className="flex flex-wrap gap-2">
-              {allProtocols.map((p) => {
-                const on = settings.enabled_protocols.includes(p)
-                return (
-                  <button
-                    key={p}
-                    type="button"
-                    onClick={() => toggleProtocol(p)}
-                    aria-pressed={on}
-                    className={cn(
-                      'focus-ring min-h-11 rounded-2xl px-2 py-1.5 transition',
-                      on ? 'bg-[var(--accent-soft)] ring-1 ring-[var(--accent-border)]' : 'opacity-45 hover:opacity-75',
-                    )}
-                  >
-                    <ProtocolBadge protocol={p} />
-                  </button>
-                )
-              })}
+            <div className="flex flex-wrap gap-2" aria-label="v1.0 支持协议">
+              {V1_PROTOCOLS.map((protocol) => (
+                <div key={protocol} className="rounded-xl bg-ink-50 px-2.5 py-2 ring-1 ring-line">
+                  <ProtocolBadge protocol={protocol} />
+                </div>
+              ))}
             </div>
+            <p className="mt-4 text-xs leading-relaxed text-muted">
+              HTTPS 不解密正文；无会话密钥时仅展示 TLS 元数据和加密载荷提示。
+            </p>
           </CardBody>
         </Card>
       </div>
@@ -248,32 +191,5 @@ function Field({
       <label htmlFor={id} className="text-sm text-ink-700">{label}</label>
       {children}
     </div>
-  )
-}
-
-function Toggle({
-  label,
-  desc,
-  checked,
-  onChange,
-}: {
-  label: string
-  desc: string
-  checked: boolean
-  onChange: (v: boolean) => void
-}) {
-  return (
-    <label className="flex cursor-pointer items-center justify-between gap-4 rounded-2xl border border-line bg-[#fafbfc] px-4 py-3">
-      <div>
-        <p className="text-sm text-ink-900">{label}</p>
-        <p className="text-xs text-muted">{desc}</p>
-      </div>
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-        className="theme-checkbox h-5 w-5 shrink-0"
-      />
-    </label>
   )
 }

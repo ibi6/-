@@ -50,14 +50,14 @@ export function Stats() {
     <div>
       <PageHeader title="数据统计" subtitle="捕获、提取与协议维度汇总" />
 
-      <div className="mb-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mb-5 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         {[
           { label: '捕获包总数', value: dash.capture_total.toLocaleString() },
           { label: '提取载荷总数', value: dash.payload_total.toLocaleString() },
           { label: '协议总流量', value: formatBytes(totalBytes) },
           { label: '完成任务', value: `${completed} / ${tasks.length}` },
         ].map((m) => (
-          <Card key={m.label} className="p-5">
+          <Card key={m.label} className="min-w-0 p-4 sm:p-5">
             <p className="text-[12px] text-muted">{m.label}</p>
             <p className="mt-2 text-xl font-semibold text-ink-900">{m.value}</p>
           </Card>
@@ -67,7 +67,7 @@ export function Stats() {
       <Card className="mb-5">
         <CardHeader title="任务流量趋势（按任务时间）" />
         <CardBody className="h-[320px] !pt-2">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={280}>
             <AreaChart data={dash.timeline}>
               <defs>
                 <linearGradient id="sFlow" x1="0" y1="0" x2="0" y2="1">
@@ -80,8 +80,8 @@ export function Stats() {
                 </linearGradient>
               </defs>
               <CartesianGrid stroke="#eef1f3" vertical={false} />
-              <XAxis dataKey="time" tick={{ fill: '#8b95a1', fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: '#8b95a1', fontSize: 11 }} axisLine={false} tickLine={false} width={48} />
+              <XAxis dataKey="time" tick={{ fill: '#66727f', fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: '#66727f', fontSize: 11 }} axisLine={false} tickLine={false} width={48} />
               <Tooltip
                 contentStyle={{
                   background: '#fff',
@@ -90,8 +90,8 @@ export function Stats() {
                   fontSize: 12,
                 }}
               />
-              <Area type="monotone" dataKey="packets" name="流量" stroke={palette.accent} fill="url(#sFlow)" strokeWidth={2} />
-              <Area type="monotone" dataKey="payloads" name="载荷" stroke={palette.secondary} fill="url(#sPay)" strokeWidth={2} />
+              <Area type="monotone" dataKey="packets" name="流量" stroke={palette.accent} fill="url(#sFlow)" strokeWidth={2} isAnimationActive={false} />
+              <Area type="monotone" dataKey="payloads" name="载荷" stroke={palette.secondary} fill="url(#sPay)" strokeWidth={2} isAnimationActive={false} />
             </AreaChart>
           </ResponsiveContainer>
         </CardBody>

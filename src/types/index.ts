@@ -3,13 +3,9 @@ export type Protocol =
   | 'HTTP'
   | 'HTTPS'
   | 'DNS'
-  | 'FTP'
-  | 'SMTP'
   | 'TLS'
   | 'TCP'
   | 'UDP'
-  | 'MQTT'
-  | 'WebSocket'
 export type PayloadType = 'text' | 'json' | 'html' | 'image' | 'binary' | 'form' | 'file'
 export type Severity = 'info' | 'low' | 'medium' | 'high' | 'critical'
 

@@ -30,6 +30,7 @@ export function Capture() {
   const [error, setError] = useState('')
   const [tasks, setTasks] = useState<ApiTask[]>([])
   const [uploadedId, setUploadedId] = useState<number | null>(null)
+  const [maxUploadMb, setMaxUploadMb] = useState(512)
 
   const loadTasks = useCallback(async () => {
     try {
@@ -41,13 +42,14 @@ export function Capture() {
 
   useEffect(() => {
     void loadTasks()
+    void api.settings().then((current) => setMaxUploadMb(current.max_upload_mb)).catch(() => undefined)
     const t = setInterval(() => void loadTasks(), 3000)
     return () => clearInterval(t)
   }, [loadTasks])
 
   const acceptFile = useCallback((f: File | null) => {
     if (!f) return
-    const validation = validateCaptureFile(f)
+    const validation = validateCaptureFile(f, maxUploadMb)
     if (!validation.valid) {
       setStage('error')
       setError(validation.message)
@@ -58,7 +60,7 @@ export function Capture() {
     setStage('selected')
     setProgress(0)
     setError('')
-  }, [])
+  }, [maxUploadMb])
 
   const startUpload = async () => {
     if (!file) return
@@ -121,7 +123,7 @@ export function Capture() {
               </div>
               <p className="text-sm font-medium text-ink-900">将 PCAP 文件拖到此处</p>
               <p id={`${fileInputId}-hint`} className="mt-1 text-center text-xs leading-relaxed text-muted">
-                支持 .pcap / .cap，最大 512 MB；PCAPNG 请先转换
+                支持 .pcap / .cap，最大 {maxUploadMb} MB；PCAPNG 请先转换
               </p>
               <div className="mt-3 flex flex-wrap justify-center gap-1.5" aria-label="上传能力">
                 {['本地处理', '流式上传', '文件校验'].map((label) => (

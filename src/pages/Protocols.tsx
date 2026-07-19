@@ -53,14 +53,14 @@ export function Protocols() {
     <div>
       <PageHeader title="协议分析" subtitle="会话维度协议识别与流量占比" />
 
-      <div className="mb-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mb-5 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         {[
           { label: '已识别协议', value: String(stats.length) },
           { label: '总会话数', value: sessions.length.toLocaleString() },
           { label: '主导协议', value: stats[0]?.protocol ?? '-' },
           { label: '主导占比', value: `${stats[0]?.percent ?? 0}%` },
         ].map((m) => (
-          <Card key={m.label} className="p-5">
+          <Card key={m.label} className="min-w-0 p-4 sm:p-5">
             <p className="text-[12px] text-muted">{m.label}</p>
             <p className="mt-2 text-xl font-semibold text-ink-900">{m.value}</p>
           </Card>
@@ -70,9 +70,9 @@ export function Protocols() {
       <div className="grid gap-5 xl:grid-cols-2">
         <Card>
           <CardHeader title="协议流量占比" />
-          <CardBody className="flex h-[300px] items-center">
-            <div className="h-full w-1/2">
-              <ResponsiveContainer width="100%" height="100%">
+          <CardBody className="flex min-h-[300px] flex-col items-center sm:h-[300px] sm:flex-row">
+            <div className="h-[210px] w-full min-w-0 shrink-0 sm:h-full sm:w-1/2">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={210}>
                 <PieChart>
                   <Pie
                     data={pieData}
@@ -82,6 +82,7 @@ export function Protocols() {
                     outerRadius={90}
                     paddingAngle={2}
                     stroke="none"
+                    isAnimationActive={false}
                   >
                     {pieData.map((_, i) => (
                       <Cell key={i} fill={colors[i % colors.length]} />
@@ -98,7 +99,7 @@ export function Protocols() {
                 </PieChart>
               </ResponsiveContainer>
             </div>
-            <div className="flex-1 space-y-2 pr-2">
+            <div className="grid w-full grid-cols-2 gap-x-5 gap-y-2 pt-2 sm:block sm:flex-1 sm:space-y-2 sm:pr-2 sm:pt-0">
               {pieData.map((p, i) => (
                 <div key={p.name} className="flex items-center gap-2 text-xs">
                   <span
@@ -116,11 +117,11 @@ export function Protocols() {
         <Card>
           <CardHeader title="协议会话计数" />
           <CardBody className="h-[300px] !pt-2">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={260}>
               <BarChart data={stats}>
                 <CartesianGrid stroke="#eef1f3" vertical={false} />
-                <XAxis dataKey="protocol" tick={{ fill: '#8b95a1', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: '#8b95a1', fontSize: 11 }} axisLine={false} tickLine={false} width={40} />
+                <XAxis dataKey="protocol" tick={{ fill: '#66727f', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: '#66727f', fontSize: 11 }} axisLine={false} tickLine={false} width={40} />
                 <Tooltip
                   contentStyle={{
                     background: '#fff',
@@ -129,7 +130,7 @@ export function Protocols() {
                     fontSize: 12,
                   }}
                 />
-                <Bar dataKey="count" name="会话数" radius={[6, 6, 0, 0]}>
+                <Bar dataKey="count" name="会话数" radius={[6, 6, 0, 0]} isAnimationActive={false}>
                   {stats.map((_, i) => (
                     <Cell key={i} fill={colors[i % colors.length]} />
                   ))}
