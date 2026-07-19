@@ -9,13 +9,9 @@ ProtocolName = Literal[
     "HTTP",
     "HTTPS",
     "DNS",
-    "FTP",
-    "SMTP",
     "TLS",
     "TCP",
     "UDP",
-    "MQTT",
-    "WebSocket",
 ]
 
 

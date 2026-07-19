@@ -7,7 +7,7 @@ from pathlib import Path
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.core.config import UPLOAD_DIR
+from app.core.config import get_settings
 from app.models.entities import CaptureTask, SystemConfig
 from app.services.task_runner import run_parse_task, write_log
 
@@ -103,14 +103,14 @@ def seed_if_empty(db: Session) -> None:
         "deep_inspection": "true",
         "retain_days": "30",
         "hex_columns": "16",
-        "storage_path": "./uploads",
-        "enabled_protocols": "HTTP,HTTPS,DNS,TLS,TCP,UDP,MQTT,WebSocket,FTP,SMTP",
+        "enabled_protocols": "HTTP,HTTPS,DNS,TLS,TCP,UDP",
     }
     for k, v in defaults.items():
         db.merge(SystemConfig(key=k, value=v))
 
-    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-    demo_path = UPLOAD_DIR / "demo_http_dns.pcap"
+    upload_dir = get_settings().upload_path
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    demo_path = upload_dir / "demo_http_dns.pcap"
     if not demo_path.exists():
         _build_demo_pcap(demo_path)
 

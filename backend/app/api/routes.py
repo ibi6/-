@@ -2,10 +2,12 @@ from __future__ import annotations
 
 from datetime import datetime
 from pathlib import Path
+from typing import Annotated, Literal, get_args
 from uuid import uuid4
 
 import aiofiles
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
+from fastapi import Path as PathParam
 from sqlalchemy import String, cast, func, or_, select
 from sqlalchemy.orm import Session
 
@@ -18,6 +20,7 @@ from app.schemas.common import (
     LogOut,
     Message,
     PayloadOut,
+    ProtocolName,
     ProtocolStatOut,
     SessionOut,
     SettingsOut,
@@ -28,6 +31,11 @@ from app.services.task_runner import start_parse_async, write_log
 
 router = APIRouter(prefix="/api/v1")
 settings = get_settings()
+PositiveId = Annotated[int, PathParam(ge=1)]
+TaskStatusFilter = Literal["all", "pending", "parsing", "extracting", "completed", "failed"]
+AlertLevelFilter = Literal["all", "info", "low", "medium", "high", "critical"]
+AlertStatusFilter = Literal["all", "open", "resolved"]
+SUPPORTED_PROTOCOLS = tuple(get_args(ProtocolName))
 UPLOAD_CHUNK_BYTES = 1024 * 1024
 PCAP_MAGIC_VALUES = {
     bytes.fromhex("d4c3b2a1"),
@@ -170,7 +178,7 @@ def dashboard(db: Session = Depends(get_db)) -> DashboardOut:
 
 @router.get("/tasks", response_model=list[TaskOut])
 def list_tasks(
-    status: str | None = Query(default=None, max_length=20),
+    status: TaskStatusFilter | None = Query(default=None),
     q: str | None = Query(default=None, max_length=200),
     limit: int = Query(200, ge=1, le=2000),
     offset: int = Query(0, ge=0),
@@ -193,7 +201,7 @@ def list_tasks(
 
 
 @router.get("/tasks/{task_id}", response_model=TaskOut)
-def get_task(task_id: int, db: Session = Depends(get_db)) -> TaskOut:
+def get_task(task_id: PositiveId, db: Session = Depends(get_db)) -> TaskOut:
     t = db.get(CaptureTask, task_id)
     if not t:
         raise HTTPException(404, "任务不存在")
@@ -236,7 +244,7 @@ async def upload_task(
 
 
 @router.post("/tasks/{task_id}/reparse", response_model=Message)
-def reparse(task_id: int, db: Session = Depends(get_db)) -> Message:
+def reparse(task_id: PositiveId, db: Session = Depends(get_db)) -> Message:
     t = db.get(CaptureTask, task_id)
     if not t:
         raise HTTPException(404, "任务不存在")
@@ -253,7 +261,7 @@ def reparse(task_id: int, db: Session = Depends(get_db)) -> Message:
 
 @router.get("/sessions", response_model=list[SessionOut])
 def list_sessions(
-    task_id: int | None = None,
+    task_id: int | None = Query(default=None, ge=1),
     protocol: str | None = Query(default=None, max_length=20),
     q: str | None = Query(default=None, max_length=200),
     limit: int = Query(200, ge=1, le=2000),
@@ -293,8 +301,8 @@ def list_sessions(
 
 @router.get("/payloads", response_model=list[PayloadOut])
 def list_payloads(
-    task_id: int | None = None,
-    session_id: int | None = None,
+    task_id: int | None = Query(default=None, ge=1),
+    session_id: int | None = Query(default=None, ge=1),
     type: str | None = Query(default=None, max_length=20),
     q: str | None = Query(default=None, max_length=200),
     limit: int = Query(200, ge=1, le=2000),
@@ -323,7 +331,7 @@ def list_payloads(
 
 
 @router.get("/payloads/{payload_id}", response_model=PayloadOut)
-def get_payload(payload_id: int, db: Session = Depends(get_db)) -> PayloadOut:
+def get_payload(payload_id: PositiveId, db: Session = Depends(get_db)) -> PayloadOut:
     p = db.get(Payload, payload_id)
     if not p:
         raise HTTPException(404, "载荷不存在")
@@ -332,8 +340,8 @@ def get_payload(payload_id: int, db: Session = Depends(get_db)) -> PayloadOut:
 
 @router.get("/alerts", response_model=list[AlertOut])
 def list_alerts(
-    level: str | None = Query(default=None, max_length=20),
-    status: str | None = Query(default="open", max_length=20),
+    level: AlertLevelFilter | None = Query(default=None),
+    status: AlertStatusFilter | None = Query(default="open"),
     limit: int = Query(200, ge=1, le=2000),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
@@ -348,7 +356,7 @@ def list_alerts(
 
 
 @router.post("/alerts/{alert_id}/resolve", response_model=AlertOut)
-def resolve_alert(alert_id: int, db: Session = Depends(get_db)) -> AlertOut:
+def resolve_alert(alert_id: PositiveId, db: Session = Depends(get_db)) -> AlertOut:
     a = db.get(Alert, alert_id)
     if not a:
         raise HTTPException(404, "告警不存在")
@@ -392,30 +400,32 @@ def get_settings_api(db: Session = Depends(get_db)) -> SettingsOut:
         return row.value if row else default
 
     enabled = g("enabled_protocols", "HTTP,HTTPS,DNS,TLS,TCP,UDP")
+    enabled_protocols = [name for name in enabled.split(",") if name in SUPPORTED_PROTOCOLS]
+    if not enabled_protocols:
+        enabled_protocols = list(SUPPORTED_PROTOCOLS)
     return SettingsOut(
-        max_upload_mb=int(g("max_upload_mb", str(settings.max_upload_mb))),
+        max_upload_mb=_effective_max_upload_mb(db),
         auto_extract=g("auto_extract", "true").lower() == "true",
         deep_inspection=g("deep_inspection", "true").lower() == "true",
         retain_days=int(g("retain_days", "30")),
         hex_columns=int(g("hex_columns", "16")),
-        storage_path=g("storage_path", "./uploads"),
-        enabled_protocols=[x for x in enabled.split(",") if x],
+        storage_path=settings.upload_dir,
+        enabled_protocols=enabled_protocols,
     )
 
 
 @router.put("/settings", response_model=SettingsOut)
 def put_settings(body: SettingsOut, db: Session = Depends(get_db)) -> SettingsOut:
     mapping = {
-        "max_upload_mb": str(body.max_upload_mb),
+        "max_upload_mb": str(min(body.max_upload_mb, settings.max_upload_mb)),
         "auto_extract": "true" if body.auto_extract else "false",
         "deep_inspection": "true" if body.deep_inspection else "false",
         "retain_days": str(body.retain_days),
         "hex_columns": str(body.hex_columns),
-        "storage_path": body.storage_path,
         "enabled_protocols": ",".join(body.enabled_protocols),
     }
     for k, v in mapping.items():
         db.merge(SystemConfig(key=k, value=v))
     write_log(db, "system", "更新系统配置")
     db.commit()
-    return body
+    return get_settings_api(db)

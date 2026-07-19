@@ -10,7 +10,7 @@ from app.api import routes as routes_mod
 from app.api.routes import _safe_upload_name
 from app.db.session import Base, get_db
 from app.main import app
-from app.models.entities import CaptureTask
+from app.models.entities import CaptureTask, SystemConfig
 from app.services import task_runner
 from app.services.seed import _build_demo_pcap
 
@@ -248,6 +248,38 @@ def test_list_query_rejects_invalid_bounds(client: TestClient):
 
 
 @pytest.mark.parametrize(
+    ("path", "params"),
+    [
+        ("/api/v1/tasks", {"status": "unknown"}),
+        ("/api/v1/alerts", {"level": "urgent"}),
+        ("/api/v1/alerts", {"status": "unknown"}),
+        ("/api/v1/sessions", {"task_id": 0}),
+        ("/api/v1/payloads", {"session_id": -1}),
+    ],
+)
+def test_list_query_rejects_unknown_enums_and_non_positive_ids(
+    client: TestClient,
+    path: str,
+    params: dict[str, object],
+):
+    assert client.get(path, params=params).status_code == 422
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        "/api/v1/tasks/0",
+        "/api/v1/tasks/0/reparse",
+        "/api/v1/payloads/0",
+        "/api/v1/alerts/0/resolve",
+    ],
+)
+def test_resource_routes_require_positive_ids(client: TestClient, path: str):
+    method = client.post if path.endswith(("/reparse", "/resolve")) else client.get
+    assert method(path).status_code == 422
+
+
+@pytest.mark.parametrize(
     "body",
     [
         {
@@ -277,8 +309,55 @@ def test_list_query_rejects_invalid_bounds(client: TestClient):
             "storage_path": "./uploads",
             "enabled_protocols": ["UNKNOWN"],
         },
+        {
+            "max_upload_mb": 128,
+            "auto_extract": True,
+            "deep_inspection": True,
+            "retain_days": 30,
+            "hex_columns": 16,
+            "storage_path": "./uploads",
+            "enabled_protocols": ["MQTT"],
+        },
     ],
 )
 def test_settings_reject_invalid_values(client: TestClient, body: dict[str, object]):
     r = client.put("/api/v1/settings", json=body)
     assert r.status_code == 422, r.text
+
+
+def test_settings_report_runtime_storage_and_upload_ceiling(
+    client: TestClient,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    runtime_uploads = tmp_path / "runtime-uploads"
+    monkeypatch.setattr(routes_mod.settings, "upload_dir", str(runtime_uploads))
+    monkeypatch.setattr(routes_mod.settings, "max_upload_mb", 32)
+
+    current = client.get("/api/v1/settings").json()
+    assert current["max_upload_mb"] == 32
+    assert current["storage_path"] == str(runtime_uploads)
+
+    attempted = {**current, "max_upload_mb": 128, "storage_path": "C:/untrusted-override"}
+    response = client.put("/api/v1/settings", json=attempted)
+
+    assert response.status_code == 200, response.text
+    assert response.json()["max_upload_mb"] == 32
+    assert response.json()["storage_path"] == str(runtime_uploads)
+    assert client.get("/api/v1/settings").json()["storage_path"] == str(runtime_uploads)
+
+
+def test_settings_filter_legacy_unsupported_protocols(client: TestClient):
+    with client.app.state.testing_session_factory() as db:
+        db.merge(
+            SystemConfig(
+                key="enabled_protocols",
+                value="HTTP,MQTT,FTP,DNS,WebSocket,TCP",
+            )
+        )
+        db.commit()
+
+    response = client.get("/api/v1/settings")
+
+    assert response.status_code == 200
+    assert response.json()["enabled_protocols"] == ["HTTP", "DNS", "TCP"]
