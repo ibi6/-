@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import {
@@ -15,10 +16,12 @@ import {
   useUserStore,
   useSubscriptionStore,
   useHealthStore,
+  clearLocalData,
 } from '@/stores';
 import { experienceLabel, goalLabel } from '@/utils/date';
 
 export default function ProfileTab() {
+  const [loggingOut, setLoggingOut] = useState(false);
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const profile = useUserStore((s) => s.profile);
@@ -27,14 +30,22 @@ export default function ProfileTab() {
   const latest = useHealthStore((s) => s.latest());
 
   const onLogout = () => {
-    Alert.alert('退出登录', '确定退出当前账号？', [
+    if (loggingOut) return;
+    Alert.alert('退出并清除本机数据？', '将永久删除账号资料、Token、训练、饮食、身体、AI 对话和订阅演示状态。此操作无法撤销。', [
       { text: '取消', style: 'cancel' },
       {
         text: '退出',
         style: 'destructive',
         onPress: async () => {
-          await logout();
-          router.replace('/(auth)/login');
+          setLoggingOut(true);
+          try {
+            await logout();
+            await clearLocalData();
+            router.replace('/(auth)/login');
+          } catch {
+            setLoggingOut(false);
+            Alert.alert('退出失败', '本地数据暂时无法清理，请稍后重试。');
+          }
         },
       },
     ]);
@@ -95,8 +106,9 @@ export default function ProfileTab() {
         />
         <MenuRow
           icon={<LogOut size={20} color={Colors.danger} />}
-          label="退出登录"
+          label={loggingOut ? '正在退出并清理…' : '退出并清除本机数据'}
           danger
+          disabled={loggingOut}
           onPress={onLogout}
         />
       </View>
@@ -111,14 +123,23 @@ function MenuRow({
   label,
   onPress,
   danger,
+  disabled,
 }: {
   icon: React.ReactNode;
   label: string;
   onPress: () => void;
   danger?: boolean;
+  disabled?: boolean;
 }) {
   return (
-    <Pressable style={styles.menuRow} onPress={onPress}>
+    <Pressable
+      style={[styles.menuRow, disabled && styles.menuRowDisabled]}
+      onPress={onPress}
+      disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled }}
+    >
       <View style={styles.menuLeft}>
         {icon}
         <Text style={[styles.menuLabel, danger && { color: Colors.danger }]}>{label}</Text>
@@ -169,6 +190,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: Colors.border,
   },
+  menuRowDisabled: { opacity: 0.55 },
   menuLeft: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
   menuLabel: { ...Typography.bodyMedium },
   footer: { ...Typography.label, textAlign: 'center', marginTop: Spacing.xxxl },
