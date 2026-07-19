@@ -22,6 +22,7 @@
   <a href="docs/ARCHITECTURE.md">架构说明</a> ·
   <a href="docs/API.md">接口文档</a> ·
   <a href="docs/DEPLOYMENT.md">部署指南</a> ·
+  <a href="docs/VALIDATION-V2.md">第二版验收报告</a> ·
   <a href="docs/ROADMAP.md">路线图</a>
 </p>
 
