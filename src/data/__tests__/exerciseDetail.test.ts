@@ -1,4 +1,9 @@
-import { createExerciseDetailViewModel, getPlanDayStartAction } from '@/data/exercises';
+import {
+  createExerciseDetailViewModel,
+  createExerciseSegmentState,
+  getPlanDayStartAction,
+  WORKOUT_DAY_ACTION_MIN_HEIGHT,
+} from '@/data/exercises';
 
 describe('exercise detail view model', () => {
   it('normalizes an array route parameter and exposes complete Chinese exercise details', () => {
@@ -48,5 +53,20 @@ describe('exercise detail view model', () => {
     expect(getPlanDayStartAction(false, false)).toEqual({ label: '开始' });
     expect(getPlanDayStartAction(false, true)).toEqual({ label: '再次训练' });
     expect(getPlanDayStartAction(true, false)).toBeNull();
+  });
+
+  it('requires workout day actions to expose a 44 point touch target', () => {
+    expect(WORKOUT_DAY_ACTION_MIN_HEIGHT).toBe(44);
+  });
+
+  it('keeps selected and disabled segment accessibility states independent', () => {
+    expect(createExerciseSegmentState(true, false)).toEqual({
+      disabled: false,
+      accessibilityState: { selected: true, disabled: false },
+    });
+    expect(createExerciseSegmentState(false, true)).toEqual({
+      disabled: true,
+      accessibilityState: { selected: false, disabled: true },
+    });
   });
 });

@@ -105,3 +105,35 @@ npm test -- src/data/__tests__/exerciseDetail.test.ts --runInBand
 - `npm run typecheck`：退出码 0，`tsc --noEmit` 通过，无 warning。
 - `npm run lint`：退出码 0，ESLint 通过，无 warning。
 - `npm test -- --runInBand`：退出码 0；13 个测试套件、59 个测试全部通过，0 快照，耗时 4.986 秒，无 warning。
+
+## 复审修复（第三轮）
+
+### 修复内容
+
+- 新增并测试 `WORKOUT_DAY_ACTION_MIN_HEIGHT = 44`，训练页“开始 / 再次训练”按钮样式直接使用该常量，实际触摸高度不再受 `size="sm"` 的 36 高度限制。
+- 新增并测试 `createExerciseSegmentState`，将 `selected` 与 `disabled` 状态完全解耦。
+- `SegmentButton` 分别接收并使用 `selected`、`disabled` Props；正常选中的分段保持可用，不再向无障碍服务宣告禁用。
+- 分段标签限制为单行并使用尾部省略，避免窄屏或字体放大时溢出。
+
+### 第三轮 RED
+
+命令：
+
+```text
+npm test -- src/data/__tests__/exerciseDetail.test.ts --runInBand
+```
+
+结果：退出码 1；1 个测试套件中 2 个失败、10 个通过。失败分别为：
+
+- `WORKOUT_DAY_ACTION_MIN_HEIGHT` 为 `undefined`，无法保证 44 点触摸高度。
+- `createExerciseSegmentState` 为 `undefined`，无法证明选中与禁用状态相互独立。
+
+### 第三轮 GREEN / REFACTOR
+
+同一聚焦命令结果：退出码 0；1 个测试套件、12 个测试全部通过，0 快照，耗时 0.718 秒。
+
+### 第三轮全量验证
+
+- `npm run typecheck`：退出码 0，`tsc --noEmit` 通过。
+- `npm run lint`：最终重跑退出码 0，ESLint 通过，0 warning。首次运行曾被范围外并发编辑中的 `app/settings.tsx` 未使用导入短暂阻塞，该并发改动完成后无需修改本任务文件即恢复通过。
+- `npm test -- --runInBand`：退出码 0；14 个测试套件、63 个测试全部通过，0 快照，耗时 3.644 秒。

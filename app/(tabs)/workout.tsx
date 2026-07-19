@@ -6,7 +6,11 @@ import { Button, Card, Chip, EmptyState, Screen, SectionHeader } from '@/compone
 import { Colors, Spacing, Typography } from '@/theme';
 import { useWorkoutStore } from '@/stores';
 import { weekdayLabel, formatDuration } from '@/utils/date';
-import { getExerciseById, getPlanDayStartAction } from '@/data/exercises';
+import {
+  getExerciseById,
+  getPlanDayStartAction,
+  WORKOUT_DAY_ACTION_MIN_HEIGHT,
+} from '@/data/exercises';
 import type { PlanDay } from '@/types';
 
 export default function WorkoutTab() {
@@ -186,6 +190,6 @@ const styles = StyleSheet.create({
   exItem: { ...Typography.caption, flex: 1, paddingVertical: Spacing.sm },
   exDetailWrap: { flexDirection: 'row', alignItems: 'center', marginLeft: Spacing.sm },
   exDetail: { ...Typography.label, color: Colors.primary },
-  startBtn: { marginTop: Spacing.md },
+  startBtn: { marginTop: Spacing.md, minHeight: WORKOUT_DAY_ACTION_MIN_HEIGHT },
   sessionCard: { marginBottom: Spacing.sm },
 });

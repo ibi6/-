@@ -5,7 +5,10 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { AlertTriangle, CheckCircle2, ChevronLeft, Dumbbell } from 'lucide-react-native';
 import { Button, Card, EmptyState, Screen } from '@/components/common';
 import { Colors, Radius, Shadows, Spacing, Typography } from '@/theme';
-import { createExerciseDetailViewModel } from '@/data/exercises';
+import {
+  createExerciseDetailViewModel,
+  createExerciseSegmentState,
+} from '@/data/exercises';
 import { useWorkoutStore } from '@/stores';
 
 type GuidanceSegment = 'cues' | 'mistakes';
@@ -95,11 +98,13 @@ export default function ExerciseDetailScreen() {
         <SegmentButton
           label="动作要点"
           selected={segment === 'cues'}
+          disabled={false}
           onPress={() => setSegment('cues')}
         />
         <SegmentButton
           label="常见错误"
           selected={segment === 'mistakes'}
+          disabled={false}
           onPress={() => setSegment('mistakes')}
         />
       </View>
@@ -169,27 +174,38 @@ function Metric({ label, value }: { label: string; value: string }) {
 function SegmentButton({
   label,
   selected,
+  disabled,
   onPress,
 }: {
   label: string;
   selected: boolean;
+  disabled: boolean;
   onPress: () => void;
 }) {
+  const segmentState = createExerciseSegmentState(selected, disabled);
+
   return (
     <Pressable
       onPress={onPress}
-      disabled={selected}
+      disabled={segmentState.disabled}
       style={({ pressed }) => [
         styles.segmentButton,
         selected && styles.segmentButtonSelected,
+        disabled && styles.segmentButtonDisabled,
         pressed && styles.pressed,
       ]}
       accessibilityRole="tab"
-      accessibilityState={{ selected, disabled: selected }}
+      accessibilityState={segmentState.accessibilityState}
       accessibilityLabel={label}
-      accessibilityHint={selected ? '当前已显示' : `切换到${label}`}
+      accessibilityHint={selected ? '当前已显示，可切换到其他分段' : `切换到${label}`}
     >
-      <Text style={[styles.segmentLabel, selected && styles.segmentLabelSelected]}>{label}</Text>
+      <Text
+        style={[styles.segmentLabel, selected && styles.segmentLabelSelected]}
+        numberOfLines={1}
+        ellipsizeMode="tail"
+      >
+        {label}
+      </Text>
     </Pressable>
   );
 }
@@ -303,6 +319,7 @@ const styles = StyleSheet.create({
     borderRadius: Radius.md,
   },
   segmentButtonSelected: { backgroundColor: Colors.surface, ...Shadows.soft },
+  segmentButtonDisabled: { opacity: 0.45 },
   segmentLabel: { ...Typography.bodyMedium, color: Colors.textSecondary },
   segmentLabelSelected: { color: Colors.primary },
   guidanceCard: { paddingBottom: Spacing.sm },

@@ -401,6 +401,15 @@ export function getPlanDayStartAction(
   return { label: isCompleted ? '再次训练' : '开始' };
 }
 
+export const WORKOUT_DAY_ACTION_MIN_HEIGHT = 44;
+
+export function createExerciseSegmentState(selected: boolean, disabled: boolean) {
+  return {
+    disabled,
+    accessibilityState: { selected, disabled },
+  };
+}
+
 function formatRestDuration(seconds: number): string {
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = seconds % 60;
