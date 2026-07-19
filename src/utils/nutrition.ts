@@ -1,9 +1,29 @@
 import type { Meal, MealFood, NutritionSummary, NutritionTargets } from '@/types';
 
+export function parseFoodWeight(value: string | number): number | null {
+  if (typeof value === 'string' && !value.trim()) return null;
+  const weight = typeof value === 'number' ? value : Number(value);
+  if (!Number.isFinite(weight) || weight <= 0 || weight > 5000) return null;
+  return weight;
+}
+
+export function foodServingOptions(commonServingG: number): number[] {
+  const base = parseFoodWeight(commonServingG) ?? 100;
+  return [...new Set([0.5, 1, 1.5].map((ratio) => Math.max(1, Math.round(base * ratio))))];
+}
+
 export function nutrientForWeight(
   per100g: number,
   weightG: number,
 ): number {
+  if (
+    !Number.isFinite(per100g) ||
+    !Number.isFinite(weightG) ||
+    per100g <= 0 ||
+    weightG <= 0
+  ) {
+    return 0;
+  }
   return Math.round((per100g * weightG) / 100 * 10) / 10;
 }
 
@@ -47,7 +67,7 @@ export function remainingTargets(
 
 /** Progress clamped 0–1.2 so UI bars can show slight overage */
 export function progressRatio(consumed: number, target: number): number {
-  if (target <= 0) return 0;
+  if (!Number.isFinite(consumed) || !Number.isFinite(target) || target <= 0) return 0;
   return Math.min(1.2, Math.max(0, consumed / target));
 }
 
@@ -56,7 +76,8 @@ export function buildNutritionSummary(
   meals: Meal[],
   targets: NutritionTargets,
 ): NutritionSummary {
-  const allFoods = meals.flatMap((m) => m.foods);
+  const dateMeals = meals.filter((meal) => meal.date === date);
+  const allFoods = dateMeals.flatMap((meal) => meal.foods);
   const consumed = sumNutrients(allFoods);
   const remaining = remainingTargets(targets, consumed);
   return {
@@ -64,7 +85,7 @@ export function buildNutritionSummary(
     consumed,
     targets,
     remaining,
-    meals,
+    meals: dateMeals,
     progress: {
       calories: progressRatio(consumed.calories, targets.calories),
       protein: progressRatio(consumed.protein, targets.protein),

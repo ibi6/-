@@ -4,8 +4,18 @@ import { createAppError, mockDelay } from '@/services/api/types';
 import { EXERCISES, getExerciseById, buildWeeklyPlan } from '@/data';
 import { generateId, todayISO } from '@/utils/date';
 import { computeSessionVolume } from '@/utils/overload';
+import { readMockData, writeMockData } from './storage';
 
-const sessions = new Map<string, WorkoutSession>();
+const SESSIONS_KEY = 'fitai-mock-workout-sessions';
+
+async function loadSessions(): Promise<WorkoutSession[]> {
+  const stored = await readMockData<WorkoutSession[]>(SESSIONS_KEY);
+  return Array.isArray(stored) ? stored : [];
+}
+
+async function saveSessions(sessions: WorkoutSession[]): Promise<void> {
+  await writeMockData(SESSIONS_KEY, sessions);
+}
 
 export const mockWorkoutApi: WorkoutApi = {
   async getWeeklyPlan(date) {
@@ -57,28 +67,39 @@ export const mockWorkoutApi: WorkoutApi = {
         };
       }),
     };
-    sessions.set(session.id, session);
+    const sessions = await loadSessions();
+    await saveSessions([session, ...sessions.filter((item) => item.id !== session.id)]);
     return session;
   },
 
   async saveExerciseSet(sessionId, exerciseId, set: ExerciseSet) {
     await mockDelay();
-    const session = sessions.get(sessionId);
+    const sessions = await loadSessions();
+    const session = sessions.find((item) => item.id === sessionId);
     if (!session) throw createAppError('NOT_FOUND', '训练会话不存在', true);
-    const ex = session.exercises.find((e) => e.exerciseId === exerciseId);
-    if (!ex) throw createAppError('NOT_FOUND', '动作不在会话中', false);
-    const idx = ex.sets.findIndex((s) => s.id === set.id);
-    if (idx >= 0) {
-      ex.sets[idx] = set;
-    } else {
-      ex.sets.push(set);
+    if (!session.exercises.some((item) => item.exerciseId === exerciseId)) {
+      throw createAppError('NOT_FOUND', '动作不在会话中', false);
     }
-    sessions.set(sessionId, { ...session });
+    const updated: WorkoutSession = {
+      ...session,
+      exercises: session.exercises.map((exercise) => {
+        if (exercise.exerciseId !== exerciseId) return exercise;
+        const exists = exercise.sets.some((item) => item.id === set.id);
+        return {
+          ...exercise,
+          sets: exists
+            ? exercise.sets.map((item) => (item.id === set.id ? set : item))
+            : [...exercise.sets, set],
+        };
+      }),
+    };
+    await saveSessions(sessions.map((item) => (item.id === updated.id ? updated : item)));
   },
 
   async completeWorkout(sessionId) {
     await mockDelay();
-    const session = sessions.get(sessionId);
+    const sessions = await loadSessions();
+    const session = sessions.find((item) => item.id === sessionId);
     if (!session) throw createAppError('NOT_FOUND', '训练会话不存在', true);
     const completed: WorkoutSession = {
       ...session,
@@ -90,25 +111,25 @@ export const mockWorkoutApi: WorkoutApi = {
         Math.floor((Date.now() - new Date(session.startedAt).getTime()) / 1000),
       ),
     };
-    sessions.set(sessionId, completed);
+    await saveSessions(sessions.map((item) => (item.id === completed.id ? completed : item)));
     return completed;
   },
 
   async getSession(sessionId) {
     await mockDelay();
-    return sessions.get(sessionId) ?? null;
+    return (await loadSessions()).find((item) => item.id === sessionId) ?? null;
   },
 
   async listSessions() {
     await mockDelay();
-    return Array.from(sessions.values()).sort((a, b) =>
+    return (await loadSessions()).sort((a, b) =>
       (b.startedAt || '').localeCompare(a.startedAt || ''),
     );
   },
 };
 
-export function __getSessionsMap() {
-  return sessions;
+export async function __resetSessions() {
+  await saveSessions([]);
 }
 
 // silence unused in some builds

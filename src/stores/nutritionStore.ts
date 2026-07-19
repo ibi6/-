@@ -1,17 +1,20 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { FoodItem, Meal, MealFood, MealType, NutritionSummary, NutritionTargets } from '@/types';
 import { api } from '@/services/api';
 import { AppConfig } from '@/constants';
 import { DEFAULT_TARGETS, getFoodById } from '@/data';
 import { buildNutritionSummary, computeMealFoodNutrients } from '@/utils/nutrition';
 import { generateId, todayISO } from '@/utils/date';
+import { migratePersistedState, safeAsyncStorage } from './persistStorage';
+
+type MealsByDate = Record<string, Meal[]>;
 
 type NutritionState = {
   selectedDate: string;
   summary: NutritionSummary | null;
   meals: Meal[];
+  mealsByDate: MealsByDate;
   searchResults: FoodItem[];
   targets: NutritionTargets;
   isLoading: boolean;
@@ -42,13 +45,19 @@ export const useNutritionStore = create<NutritionState>()(
       selectedDate: todayISO(),
       summary: null,
       meals: [],
+      mealsByDate: {},
       searchResults: [],
       targets: DEFAULT_TARGETS,
       isLoading: false,
       error: null,
 
       setDate: (date) => {
-        set({ selectedDate: date });
+        const cached = get().mealsByDate[date];
+        set({
+          selectedDate: date,
+          meals: cached ?? [],
+          summary: cached ? buildNutritionSummary(date, cached, get().targets) : null,
+        });
         void get().loadDay(date);
       },
 
@@ -60,13 +69,26 @@ export const useNutritionStore = create<NutritionState>()(
 
       loadDay: async (date) => {
         const d = date ?? get().selectedDate;
-        set({ isLoading: true, error: null });
-        try {
-          const summary = await api.nutrition.getDailySummary(d);
+        const cached = get().mealsByDate[d];
+        if (cached) {
           set({
             selectedDate: d,
-            summary: { ...summary, targets: get().targets },
-            meals: summary.meals,
+            meals: cached,
+            summary: buildNutritionSummary(d, cached, get().targets),
+            isLoading: false,
+            error: null,
+          });
+          return;
+        }
+        set({ isLoading: true, error: null });
+        try {
+          const response = await api.nutrition.getDailySummary(d);
+          const meals = response.meals.filter((meal) => meal.date === d);
+          set({
+            selectedDate: d,
+            summary: buildNutritionSummary(d, meals, get().targets),
+            meals,
+            mealsByDate: { ...get().mealsByDate, [d]: meals },
             isLoading: false,
           });
         } catch (e) {
@@ -98,7 +120,15 @@ export const useNutritionStore = create<NutritionState>()(
       clearSearch: () => set({ searchResults: [] }),
 
       addFoodToMeal: async ({ mealType, foodId, weightG, date }) => {
+        if (!Number.isFinite(weightG) || weightG <= 0 || weightG > 5000) {
+          throw new Error('食物重量需在 0–5000 克之间');
+        }
         const d = date ?? get().selectedDate;
+        if (d > todayISO()) {
+          throw new Error('未来日期不能记录已食用食物');
+        }
+        const state = get();
+        const dayMeals = state.mealsByDate[d] ?? (state.selectedDate === d ? state.meals : []);
         const food = getFoodById(foodId) ?? (await api.nutrition.getFood(foodId));
         const nutrients = computeMealFoodNutrients(food.per100g, weightG);
         const mealFood: MealFood = {
@@ -109,7 +139,7 @@ export const useNutritionStore = create<NutritionState>()(
           ...nutrients,
         };
 
-        const existing = get().meals.find((m) => m.date === d && m.mealType === mealType);
+        const existing = dayMeals.find((m) => m.mealType === mealType);
         let meal: Meal;
         if (existing) {
           meal = {
@@ -117,7 +147,15 @@ export const useNutritionStore = create<NutritionState>()(
             foods: [...existing.foods, mealFood],
             updatedAt: new Date().toISOString(),
           };
-          meal = await api.nutrition.updateMeal(meal);
+          try {
+            meal = await api.nutrition.updateMeal(meal);
+          } catch (error) {
+            if (error && typeof error === 'object' && 'code' in error && error.code === 'NOT_FOUND') {
+              meal = await api.nutrition.addMeal(meal);
+            } else {
+              throw error;
+            }
+          }
         } else {
           meal = {
             id: generateId('meal'),
@@ -131,11 +169,13 @@ export const useNutritionStore = create<NutritionState>()(
           meal = await api.nutrition.addMeal(meal);
         }
 
-        const meals = [...get().meals.filter((m) => m.id !== meal.id), meal].filter(
-          (m) => m.date === d,
-        );
-        const summary = buildNutritionSummary(d, meals, get().targets);
-        set({ meals, summary });
+        const meals = [...dayMeals.filter((item) => item.id !== meal.id), meal];
+        const mealsByDate = { ...get().mealsByDate, [d]: meals };
+        if (get().selectedDate === d) {
+          set({ meals, mealsByDate, summary: buildNutritionSummary(d, meals, get().targets) });
+        } else {
+          set({ mealsByDate });
+        }
       },
 
       removeMealFood: async (mealId, mealFoodId) => {
@@ -150,27 +190,53 @@ export const useNutritionStore = create<NutritionState>()(
           await api.nutrition.deleteMeal(mealId);
           const meals = get().meals.filter((m) => m.id !== mealId);
           const summary = buildNutritionSummary(get().selectedDate, meals, get().targets);
-          set({ meals, summary });
+          set({
+            meals,
+            summary,
+            mealsByDate: { ...get().mealsByDate, [get().selectedDate]: meals },
+          });
           return;
         }
-        const saved = await api.nutrition.updateMeal(next);
+        let saved: Meal;
+        try {
+          saved = await api.nutrition.updateMeal(next);
+        } catch (error) {
+          if (error && typeof error === 'object' && 'code' in error && error.code === 'NOT_FOUND') {
+            saved = await api.nutrition.addMeal(next);
+          } else {
+            throw error;
+          }
+        }
         const meals = get().meals.map((m) => (m.id === saved.id ? saved : m));
         const summary = buildNutritionSummary(get().selectedDate, meals, get().targets);
-        set({ meals, summary });
+        set({
+          meals,
+          summary,
+          mealsByDate: { ...get().mealsByDate, [get().selectedDate]: meals },
+        });
       },
 
       deleteMeal: async (mealId) => {
         await api.nutrition.deleteMeal(mealId);
         const meals = get().meals.filter((m) => m.id !== mealId);
         const summary = buildNutritionSummary(get().selectedDate, meals, get().targets);
-        set({ meals, summary });
+        set({
+          meals,
+          summary,
+          mealsByDate: { ...get().mealsByDate, [get().selectedDate]: meals },
+        });
       },
     }),
     {
       name: 'fitai-nutrition',
       version: AppConfig.storeVersion,
-      storage: createJSONStorage(() => AsyncStorage),
-      partialize: (s) => ({ targets: s.targets, selectedDate: s.selectedDate }),
+      storage: createJSONStorage(() => safeAsyncStorage),
+      migrate: (persistedState) => migratePersistedState<NutritionState>(persistedState),
+      partialize: (s) => ({
+        targets: s.targets,
+        selectedDate: s.selectedDate,
+        mealsByDate: s.mealsByDate,
+      }),
     },
   ),
 );

@@ -50,7 +50,7 @@ export function suggestNextLoad(params: {
   if (maxRpe >= 9 || !allHitReps) {
     return {
       nextWeightKg: lastWeight,
-      nextReps: Math.max(targetReps - 1, targetReps - 2 > 0 ? targetReps - 1 : targetReps),
+      nextReps: Math.max(1, targetReps - 1),
       reason: '接近力竭或未满次数，建议维持重量巩固动作',
     };
   }

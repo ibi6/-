@@ -1,10 +1,10 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { BodyMeasurement } from '@/types';
 import { api } from '@/services/api';
 import { AppConfig } from '@/constants';
 import { generateId, todayISO } from '@/utils/date';
+import { migratePersistedState, safeAsyncStorage } from './persistStorage';
 
 type HealthState = {
   measurements: BodyMeasurement[];
@@ -74,7 +74,8 @@ export const useHealthStore = create<HealthState>()(
     {
       name: 'fitai-health',
       version: AppConfig.storeVersion,
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createJSONStorage(() => safeAsyncStorage),
+      migrate: (persistedState) => migratePersistedState<HealthState>(persistedState),
       partialize: (s) => ({ measurements: s.measurements }),
     },
   ),

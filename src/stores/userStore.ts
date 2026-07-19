@@ -1,9 +1,9 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { UserProfile } from '@/types';
 import { api } from '@/services/api';
 import { AppConfig } from '@/constants';
+import { migratePersistedState, safeAsyncStorage } from './persistStorage';
 
 type UserState = {
   profile: UserProfile | null;
@@ -15,6 +15,13 @@ type UserState = {
   setOnboardingDone: (done: boolean) => void;
 };
 
+function canRecoverMockProfile(error: unknown): boolean {
+  return (
+    process.env.EXPO_PUBLIC_USE_MOCK_API !== 'false' &&
+    Boolean(error && typeof error === 'object' && 'code' in error && error.code === 'UNAUTHORIZED')
+  );
+}
+
 export const useUserStore = create<UserState>()(
   persist(
     (set, get) => ({
@@ -25,7 +32,8 @@ export const useUserStore = create<UserState>()(
       loadProfile: async () => {
         set({ isLoading: true });
         try {
-          const profile = await api.auth.getProfile();
+          const remoteProfile = await api.auth.getProfile();
+          const profile = remoteProfile ?? get().profile;
           set({
             profile,
             onboardingDone: profile?.onboardingCompleted ?? get().onboardingDone,
@@ -37,7 +45,14 @@ export const useUserStore = create<UserState>()(
       },
 
       updateProfile: async (patch) => {
-        const saved = await api.auth.updateProfile(patch);
+        let saved: UserProfile;
+        try {
+          saved = await api.auth.updateProfile(patch);
+        } catch (error) {
+          const current = get().profile;
+          if (!current || !canRecoverMockProfile(error)) throw error;
+          saved = { ...current, ...patch, updatedAt: new Date().toISOString() };
+        }
         set({
           profile: saved,
           onboardingDone: saved.onboardingCompleted,
@@ -45,10 +60,18 @@ export const useUserStore = create<UserState>()(
       },
 
       completeOnboarding: async (profile) => {
-        const saved = await api.auth.updateProfile({
+        const completedProfile: UserProfile = {
           ...profile,
           onboardingCompleted: true,
-        });
+          updatedAt: new Date().toISOString(),
+        };
+        let saved: UserProfile;
+        try {
+          saved = await api.auth.updateProfile(completedProfile);
+        } catch (error) {
+          if (!canRecoverMockProfile(error)) throw error;
+          saved = completedProfile;
+        }
         set({ profile: saved, onboardingDone: true });
       },
 
@@ -57,7 +80,8 @@ export const useUserStore = create<UserState>()(
     {
       name: 'fitai-user',
       version: AppConfig.storeVersion,
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createJSONStorage(() => safeAsyncStorage),
+      migrate: (persistedState) => migratePersistedState<UserState>(persistedState),
       partialize: (s) => ({ profile: s.profile, onboardingDone: s.onboardingDone }),
     },
   ),

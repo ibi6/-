@@ -8,5 +8,5 @@ export const AppConfig = {
   aiThinkingMs: { min: 600, max: 1200 },
   restTimerDefaultSec: 90,
   freeAiMessagesPerDay: 10,
-  storeVersion: 1,
+  storeVersion: 2,
 } as const;

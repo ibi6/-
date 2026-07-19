@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { AIContext, AIResponse, ChatMessage, FoodRecognitionResult } from '@/types';
 import { api } from '@/services/api';
 import { AppConfig } from '@/constants';
@@ -9,8 +8,10 @@ import { useNutritionStore } from './nutritionStore';
 import { useWorkoutStore } from './workoutStore';
 import { useUserStore } from './userStore';
 import { useHealthStore } from './healthStore';
+import { useSubscriptionStore } from './subscriptionStore';
 import { DEFAULT_TARGETS } from '@/data';
 import { buildNutritionSummary } from '@/utils/nutrition';
+import { migratePersistedState, safeAsyncStorage } from './persistStorage';
 
 type ChatState = {
   messages: ChatMessage[];
@@ -74,9 +75,10 @@ export const useChatStore = create<ChatState>()(
       lastRecognition: null,
       error: null,
 
-      canSend: () => get().remainingQuota() > 0,
+      canSend: () => useSubscriptionStore.getState().isActive || get().remainingQuota() > 0,
 
       remainingQuota: () => {
+        if (useSubscriptionStore.getState().isActive) return Number.POSITIVE_INFINITY;
         const today = todayISO();
         const { dailyAiCount, dailyAiDate } = get();
         if (dailyAiDate !== today) return AppConfig.freeAiMessagesPerDay;
@@ -85,15 +87,16 @@ export const useChatStore = create<ChatState>()(
 
       send: async (text) => {
         const trimmed = text.trim();
-        if (!trimmed) return null;
+        if (!trimmed || get().isThinking) return null;
 
         const today = todayISO();
         let { dailyAiCount, dailyAiDate } = get();
+        const isPro = useSubscriptionStore.getState().isActive;
         if (dailyAiDate !== today) {
           dailyAiCount = 0;
           dailyAiDate = today;
         }
-        if (dailyAiCount >= AppConfig.freeAiMessagesPerDay) {
+        if (!isPro && dailyAiCount >= AppConfig.freeAiMessagesPerDay) {
           set({ error: `今日免费 AI 次数已用完（${AppConfig.freeAiMessagesPerDay} 次）` });
           return null;
         }
@@ -108,7 +111,7 @@ export const useChatStore = create<ChatState>()(
           messages: [...s.messages, userMsg],
           isThinking: true,
           error: null,
-          dailyAiCount: dailyAiCount + 1,
+          dailyAiCount: isPro ? dailyAiCount : dailyAiCount + 1,
           dailyAiDate,
         }));
 
@@ -132,6 +135,8 @@ export const useChatStore = create<ChatState>()(
         } catch (e) {
           set({
             isThinking: false,
+            dailyAiCount,
+            dailyAiDate,
             error:
               e && typeof e === 'object' && 'message' in e
                 ? String((e as { message: string }).message)
@@ -142,6 +147,7 @@ export const useChatStore = create<ChatState>()(
       },
 
       recognizeFood: async (imageUri) => {
+        if (get().isThinking) return null;
         set({ isThinking: true, error: null });
         try {
           const result = await api.ai.recognizeFood(imageUri);
@@ -174,7 +180,8 @@ export const useChatStore = create<ChatState>()(
     {
       name: 'fitai-chat',
       version: AppConfig.storeVersion,
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createJSONStorage(() => safeAsyncStorage),
+      migrate: (persistedState) => migratePersistedState<ChatState>(persistedState),
       partialize: (s) => ({
         messages: s.messages.slice(-40),
         dailyAiCount: s.dailyAiCount,

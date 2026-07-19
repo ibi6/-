@@ -101,6 +101,12 @@ export default function WorkoutSessionScreen() {
         rpe,
         painFlag: pain,
       });
+    } catch (error) {
+      const message =
+        error && typeof error === 'object' && 'message' in error
+          ? String((error as { message: string }).message)
+          : '训练记录保存失败';
+      Alert.alert('保存失败', message);
     } finally {
       setSubmitting(false);
     }
@@ -131,7 +137,13 @@ export default function WorkoutSessionScreen() {
             {plannedSets} 组
           </Text>
         </View>
-        <Pressable onPress={onAbandon} hitSlop={10} style={styles.closeBtn}>
+        <Pressable
+          onPress={onAbandon}
+          hitSlop={10}
+          style={styles.closeBtn}
+          accessibilityRole="button"
+          accessibilityLabel="放弃并退出当前训练"
+        >
           <X size={22} color={Colors.textSecondary} />
         </Pressable>
       </View>
@@ -194,12 +206,21 @@ export default function WorkoutSessionScreen() {
                   key={v}
                   style={[styles.rpeChip, rpe === v && styles.rpeChipOn]}
                   onPress={() => setRpe(rpe === v ? undefined : v)}
+                  accessibilityRole="radio"
+                  accessibilityState={{ checked: rpe === v }}
+                  accessibilityLabel={`RPE ${v}`}
                 >
                   <Text style={[styles.rpeText, rpe === v && styles.rpeTextOn]}>{v}</Text>
                 </Pressable>
               ))}
             </View>
-            <Pressable style={styles.painRow} onPress={() => setPain((p) => !p)}>
+            <Pressable
+              style={styles.painRow}
+              onPress={() => setPain((p) => !p)}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: pain }}
+              accessibilityLabel="本组有疼痛或不适"
+            >
               <View style={[styles.checkbox, pain && styles.checkboxOn]} />
               <Text style={styles.painText}>本组有疼痛 / 不适（会降低下次建议负荷）</Text>
             </Pressable>

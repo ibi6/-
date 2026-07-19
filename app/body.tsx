@@ -72,7 +72,11 @@ export default function BodyScreen() {
     <Screen loading={isLoading && !measurements.length} edges={['top', 'bottom']}>
       <View style={styles.header}>
         <Text style={styles.title}>身体数据</Text>
-        <Pressable onPress={() => router.back()}>
+        <Pressable
+          onPress={() => router.back()}
+          accessibilityRole="button"
+          accessibilityLabel="返回上一页"
+        >
           <Text style={styles.back}>返回</Text>
         </Pressable>
       </View>
@@ -146,7 +150,12 @@ export default function BodyScreen() {
                 </Text>
                 {m.note ? <Text style={styles.note}>{m.note}</Text> : null}
               </View>
-              <Pressable onPress={() => onRemove(m.id, m.date)} hitSlop={8}>
+              <Pressable
+                onPress={() => onRemove(m.id, m.date)}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel={`删除 ${m.date} 身体数据`}
+              >
                 <Trash2 size={18} color={Colors.danger} />
               </Pressable>
             </View>

@@ -43,9 +43,17 @@ export default function WorkoutTab() {
       } else {
         await startTodayWorkout();
       }
+      if (!useWorkoutStore.getState().activeSession) {
+        Alert.alert('无法开始', useWorkoutStore.getState().error ?? '请稍后重试');
+        return;
+      }
       router.push('/workout/session');
-    } catch {
-      Alert.alert('无法开始', '请稍后重试');
+    } catch (e) {
+      const message =
+        e && typeof e === 'object' && 'message' in e
+          ? String((e as { message: string }).message)
+          : '请稍后重试';
+      Alert.alert('无法开始', message);
     }
   };
 

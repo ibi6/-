@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { SubscriptionPlan, SubscriptionState } from '@/types';
 import { AppConfig } from '@/constants';
+import { migratePersistedState, safeAsyncStorage } from './persistStorage';
 
 type SubStore = SubscriptionState & {
   upgradeMock: (plan: Extract<SubscriptionPlan, 'pro_monthly' | 'pro_yearly'>) => void;
@@ -46,7 +46,8 @@ export const useSubscriptionStore = create<SubStore>()(
     {
       name: 'fitai-subscription',
       version: AppConfig.storeVersion,
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createJSONStorage(() => safeAsyncStorage),
+      migrate: (persistedState) => migratePersistedState<SubStore>(persistedState),
     },
   ),
 );

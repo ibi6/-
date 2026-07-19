@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { AppSettings } from '@/types';
 import { AppConfig } from '@/constants';
+import { migratePersistedState, safeAsyncStorage } from './persistStorage';
 
 const defaultSettings: AppSettings = {
   units: 'metric',
@@ -28,7 +28,8 @@ export const useSettingsStore = create<SettingsState>()(
     {
       name: 'fitai-settings',
       version: AppConfig.storeVersion,
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createJSONStorage(() => safeAsyncStorage),
+      migrate: (persistedState) => migratePersistedState<SettingsState>(persistedState),
     },
   ),
 );

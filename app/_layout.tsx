@@ -33,11 +33,15 @@ export default function RootLayout() {
         <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
         <Stack.Screen name="workout/session" options={{ presentation: 'fullScreenModal' }} />
         <Stack.Screen name="workout/summary" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="workout/exercise/[id]" />
         <Stack.Screen name="nutrition/add" options={{ presentation: 'modal' }} />
         <Stack.Screen name="nutrition/search" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="nutrition/food/[id]" />
+        <Stack.Screen name="nutrition/recognition" options={{ presentation: 'modal' }} />
         <Stack.Screen name="settings" options={{ presentation: 'card' }} />
         <Stack.Screen name="subscription" options={{ presentation: 'modal' }} />
         <Stack.Screen name="body" />
+        <Stack.Screen name="analytics" />
       </Stack>
     </GestureHandlerRootView>
   );

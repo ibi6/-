@@ -4,34 +4,37 @@ import { createAppError, mockDelay } from '@/services/api/types';
 import {
   DEFAULT_TARGETS,
   buildHistoryMeals,
-  buildSampleMeals,
   getFoodById,
   searchFoods as searchFoodsLocal,
 } from '@/data';
 import { buildNutritionSummary } from '@/utils/nutrition';
-import { todayISO } from '@/utils/date';
+import { readMockData, writeMockData } from './storage';
 
-const mealsById = new Map<string, Meal>();
+const MEALS_KEY = 'fitai-mock-meals';
 
-function seedIfEmpty() {
-  if (mealsById.size === 0) {
-    for (const m of buildHistoryMeals()) {
-      mealsById.set(m.id, m);
-    }
+type PersistedMeals = {
+  initialized: true;
+  meals: Meal[];
+};
+
+async function loadMeals(): Promise<Meal[]> {
+  const stored = await readMockData<PersistedMeals>(MEALS_KEY);
+  if (stored?.initialized === true && Array.isArray(stored.meals)) {
+    return stored.meals;
   }
+  const meals = buildHistoryMeals();
+  await saveMeals(meals);
+  return meals;
+}
+
+async function saveMeals(meals: Meal[]): Promise<void> {
+  await writeMockData<PersistedMeals>(MEALS_KEY, { initialized: true, meals });
 }
 
 export const mockNutritionApi: NutritionApi = {
   async getDailySummary(date) {
     await mockDelay();
-    seedIfEmpty();
-    const dayMeals = Array.from(mealsById.values()).filter((m) => m.date === date);
-    if (dayMeals.length === 0 && date === todayISO()) {
-      for (const m of buildSampleMeals(date)) {
-        mealsById.set(m.id, m);
-        dayMeals.push(m);
-      }
-    }
+    const dayMeals = (await loadMeals()).filter((m) => m.date === date);
     return buildNutritionSummary(date, dayMeals, DEFAULT_TARGETS);
   },
 
@@ -49,26 +52,29 @@ export const mockNutritionApi: NutritionApi = {
 
   async addMeal(meal) {
     await mockDelay();
-    mealsById.set(meal.id, meal);
+    const meals = await loadMeals();
+    await saveMeals([...meals.filter((item) => item.id !== meal.id), meal]);
     return meal;
   },
 
   async updateMeal(meal) {
     await mockDelay();
-    if (!mealsById.has(meal.id)) {
+    const meals = await loadMeals();
+    if (!meals.some((item) => item.id === meal.id)) {
       throw createAppError('NOT_FOUND', '餐次不存在', false);
     }
     const updated = { ...meal, updatedAt: new Date().toISOString() };
-    mealsById.set(meal.id, updated);
+    await saveMeals(meals.map((item) => (item.id === updated.id ? updated : item)));
     return updated;
   },
 
   async deleteMeal(mealId) {
     await mockDelay();
-    mealsById.delete(mealId);
+    const meals = await loadMeals();
+    await saveMeals(meals.filter((item) => item.id !== mealId));
   },
 };
 
-export function __resetMeals() {
-  mealsById.clear();
+export async function __resetMeals() {
+  await saveMeals([]);
 }

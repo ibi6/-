@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -60,6 +61,11 @@ export default function NutritionSearchScreen() {
       await addFoodToMeal({ mealType, foodId: selected.id, weightG: w });
       clearSearch();
       router.back();
+    } catch (error) {
+      Alert.alert(
+        '添加失败',
+        error instanceof Error ? error.message : '暂时无法保存，请稍后重试。',
+      );
     } finally {
       setAdding(false);
     }
@@ -83,7 +89,11 @@ export default function NutritionSearchScreen() {
       >
         <View style={styles.header}>
           <Text style={styles.title}>搜索食物</Text>
-          <Pressable onPress={() => router.back()}>
+          <Pressable
+            onPress={() => router.back()}
+            accessibilityRole="button"
+            accessibilityLabel="关闭食物搜索"
+          >
             <Text style={styles.cancel}>关闭</Text>
           </Pressable>
         </View>
@@ -132,6 +142,16 @@ export default function NutritionSearchScreen() {
               </Text>
             ) : null}
             <Button title={`添加到${mealTypeLabel(mealType)}`} onPress={() => void onAdd()} loading={adding} />
+            <Button
+              title="查看完整营养详情"
+              variant="soft"
+              onPress={() =>
+                router.push({
+                  pathname: '/nutrition/food/[id]',
+                  params: { id: selected.id, mealType },
+                })
+              }
+            />
             <Button title="重选" variant="ghost" onPress={() => setSelected(null)} />
           </Card>
         ) : (

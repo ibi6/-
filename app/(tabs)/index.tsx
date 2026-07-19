@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Dumbbell, Utensils, Sparkles, Activity } from 'lucide-react-native';
@@ -11,6 +11,7 @@ import {
   useNutritionStore,
   useHealthStore,
   useChatStore,
+  useSubscriptionStore,
 } from '@/stores';
 import { goalLabel, weekdayLabel, todayISO } from '@/utils/date';
 
@@ -24,6 +25,7 @@ export default function HomeScreen() {
   const targets = useNutritionStore((s) => s.targets);
   const latest = useHealthStore((s) => s.latest());
   const remainingQuota = useChatStore((s) => s.remainingQuota());
+  const isPro = useSubscriptionStore((s) => s.isActive);
 
   const greeting = useMemo(() => {
     const h = new Date().getHours();
@@ -42,8 +44,20 @@ export default function HomeScreen() {
   const weekTotal = weeklyPlan?.days.filter((d) => !d.isRestDay).length ?? 0;
 
   const onStartWorkout = async () => {
-    await startTodayWorkout();
-    router.push('/workout/session');
+    try {
+      await startTodayWorkout();
+      if (!useWorkoutStore.getState().activeSession) {
+        Alert.alert('无法开始', useWorkoutStore.getState().error ?? '请稍后重试');
+        return;
+      }
+      router.push('/workout/session');
+    } catch (e) {
+      const message =
+        e && typeof e === 'object' && 'message' in e
+          ? String((e as { message: string }).message)
+          : '请稍后重试';
+      Alert.alert('无法开始', message);
+    }
   };
 
   return (
@@ -119,16 +133,16 @@ export default function HomeScreen() {
       <View style={styles.quickGrid}>
         <QuickItem icon={<Dumbbell color={Colors.primary} size={22} />} label="训练" onPress={() => router.push('/(tabs)/workout')} />
         <QuickItem icon={<Utensils color={Colors.orange} size={22} />} label="饮食" onPress={() => router.push('/(tabs)/nutrition')} />
-        <QuickItem icon={<Sparkles color={Colors.primaryLight} size={22} />} label={`AI (${remainingQuota})`} onPress={() => router.push('/(tabs)/ai')} />
+        <QuickItem icon={<Sparkles color={Colors.primaryLight} size={22} />} label={`AI (${isPro ? '∞' : remainingQuota})`} onPress={() => router.push('/(tabs)/ai')} />
         <QuickItem icon={<Activity color={Colors.success} size={22} />} label="身体" onPress={() => router.push('/body')} />
       </View>
 
-      <SectionHeader title="本周概览" actionLabel="详情" onAction={() => router.push('/body')} />
+      <SectionHeader title="本周概览" actionLabel="详情" onAction={() => router.push('/analytics')} />
       <Card>
         <View style={styles.statsRow}>
           <Stat label="训练完成" value={`${weekDone}/${weekTotal}`} />
           <Stat label="体重" value={latest ? `${latest.weightKg}` : '—'} unit="kg" />
-          <Stat label="AI 余量" value={`${remainingQuota}`} unit="次" />
+          <Stat label="AI 余量" value={isPro ? '∞' : `${remainingQuota}`} unit={isPro ? undefined : '次'} />
         </View>
       </Card>
     </Screen>
@@ -137,7 +151,12 @@ export default function HomeScreen() {
 
 function QuickItem({ icon, label, onPress }: { icon: React.ReactNode; label: string; onPress: () => void }) {
   return (
-    <Pressable onPress={onPress} style={styles.quickItem}>
+    <Pressable
+      onPress={onPress}
+      style={styles.quickItem}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+    >
       <View style={styles.quickIcon}>{icon}</View>
       <Text style={styles.quickLabel}>{label}</Text>
     </Pressable>

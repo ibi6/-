@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -42,16 +43,19 @@ export default function AITab() {
   const canSend = useChatStore((s) => s.canSend);
   const addFoodToMeal = useNutritionStore((s) => s.addFoodToMeal);
   const startTodayWorkout = useWorkoutStore((s) => s.startTodayWorkout);
+  const adjustPlan = useWorkoutStore((s) => s.adjustPlan);
+  const isAdjustingPlan = useWorkoutStore((s) => s.isAdjustingPlan);
   const isPro = useSubscriptionStore((s) => s.isActive);
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
+  const [busyActionId, setBusyActionId] = useState<string | null>(null);
   const listRef = useRef<FlatList<ChatMessage>>(null);
   const quota = remainingQuota();
 
   useEffect(() => {
-    if (messages.length) {
-      setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 100);
-    }
+    if (!messages.length) return;
+    const timer = setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 100);
+    return () => clearTimeout(timer);
   }, [messages.length, isThinking]);
 
   const onSend = async (content?: string) => {
@@ -71,6 +75,7 @@ export default function AITab() {
   };
 
   const onAction = async (action: AIAction) => {
+    if (busyActionId) return;
     switch (action.type) {
       case 'navigate': {
         const path = String(action.payload?.path ?? '/(tabs)');
@@ -81,20 +86,76 @@ export default function AITab() {
         const foodId = String(action.payload?.foodId ?? '');
         const weightG = Number(action.payload?.weightG ?? 100);
         const mealType = (action.payload?.mealType as 'breakfast' | 'lunch' | 'dinner' | 'snack') ?? 'lunch';
-        if (foodId) {
+        if (!foodId || !Number.isFinite(weightG) || weightG <= 0) {
+          Alert.alert('无法添加', '这条建议缺少有效的食物或份量，请重新询问。');
+          break;
+        }
+        setBusyActionId(action.id);
+        try {
           await addFoodToMeal({ mealType, foodId, weightG });
-          router.push('/(tabs)/nutrition');
+          Alert.alert('已添加到饮食', 'AI 建议已写入你的饮食记录。', [
+            { text: '继续对话', style: 'cancel' },
+            { text: '查看饮食', onPress: () => router.push('/(tabs)/nutrition') },
+          ]);
+        } catch (actionError) {
+          Alert.alert(
+            '添加失败',
+            actionError instanceof Error ? actionError.message : '请稍后重试。',
+          );
+        } finally {
+          setBusyActionId(null);
         }
         break;
       }
       case 'start_workout': {
-        await startTodayWorkout();
-        router.push('/workout/session');
+        setBusyActionId(action.id);
+        try {
+          await startTodayWorkout();
+          if (!useWorkoutStore.getState().activeSession) {
+            Alert.alert('无法开始', useWorkoutStore.getState().error ?? '当前没有可开始的训练。');
+            break;
+          }
+          router.push('/workout/session');
+        } catch (actionError) {
+          Alert.alert(
+            '无法开始',
+            actionError instanceof Error ? actionError.message : '请稍后重试。',
+          );
+        } finally {
+          setBusyActionId(null);
+        }
         break;
       }
-      case 'apply_plan':
-        router.push('/(tabs)/workout');
+      case 'apply_plan': {
+        Alert.alert('应用 AI 调整方案？', '将替换当前周计划。你可以在训练页继续查看和调整。', [
+          { text: '取消', style: 'cancel' },
+          {
+            text: '确认应用',
+            onPress: async () => {
+              setBusyActionId(action.id);
+              try {
+                await adjustPlan({
+                  reason: String(action.payload?.reason ?? '用户采用 AI 建议的轻量计划'),
+                  painArea: action.payload?.painArea
+                    ? String(action.payload.painArea)
+                    : undefined,
+                });
+                Alert.alert('计划已更新', '新的训练安排已经应用。', [
+                  { text: '查看计划', onPress: () => router.push('/(tabs)/workout') },
+                ]);
+              } catch (actionError) {
+                Alert.alert(
+                  '调整失败',
+                  `${actionError instanceof Error ? actionError.message : '请稍后重试。'}\n你可以再次点击按钮重试。`,
+                );
+              } finally {
+                setBusyActionId(null);
+              }
+            },
+          },
+        ]);
         break;
+      }
       default:
         break;
     }
@@ -110,7 +171,13 @@ export default function AITab() {
             {isPro ? ' · Pro' : ''}
           </Text>
         </View>
-        <Pressable onPress={clearChat} hitSlop={8} style={styles.clearBtn}>
+        <Pressable
+          onPress={clearChat}
+          hitSlop={8}
+          style={styles.clearBtn}
+          accessibilityRole="button"
+          accessibilityLabel="清空 AI 对话"
+        >
           <Trash2 size={18} color={Colors.textSecondary} />
         </Pressable>
       </View>
@@ -134,7 +201,13 @@ export default function AITab() {
                 </Text>
                 <View style={styles.chips}>
                   {SUGGESTIONS.map((s) => (
-                    <Pressable key={s} style={styles.chip} onPress={() => void onSend(s)}>
+                    <Pressable
+                      key={s}
+                      style={styles.chip}
+                      onPress={() => void onSend(s)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`发送快捷问题：${s}`}
+                    >
                       <Text style={styles.chipText}>{s}</Text>
                     </Pressable>
                   ))}
@@ -142,7 +215,14 @@ export default function AITab() {
               </View>
             ) : null
           }
-          renderItem={({ item }) => <MessageBubble msg={item} onAction={onAction} />}
+          renderItem={({ item }) => (
+            <MessageBubble
+              msg={item}
+              onAction={onAction}
+              busyActionId={busyActionId}
+              actionBusy={Boolean(busyActionId) || isAdjustingPlan}
+            />
+          )}
           ListFooterComponent={
             isThinking ? (
               <View style={styles.thinking}>
@@ -153,7 +233,24 @@ export default function AITab() {
           }
         />
 
-        {error ? <Text style={styles.error}>{error}</Text> : null}
+        {error ? (
+          <View style={styles.errorRow}>
+            <Text style={styles.error}>{error}</Text>
+            {messages.findLast((message) => message.role === 'user') ? (
+              <Pressable
+                style={styles.retryButton}
+                onPress={() =>
+                  void onSend(messages.findLast((message) => message.role === 'user')?.text)
+                }
+                disabled={sending || isThinking}
+                accessibilityRole="button"
+                accessibilityLabel="重试上一条消息"
+              >
+                <Text style={styles.retryText}>重试</Text>
+              </Pressable>
+            ) : null}
+          </View>
+        ) : null}
 
         <View style={styles.inputBar}>
           <TextInput
@@ -164,11 +261,14 @@ export default function AITab() {
             onChangeText={setText}
             multiline
             maxLength={500}
+            accessibilityLabel="输入给 AI 教练的问题"
           />
           <Pressable
             style={[styles.send, (!text.trim() || sending) && styles.sendDisabled]}
             onPress={() => void onSend()}
             disabled={!text.trim() || sending}
+            accessibilityRole="button"
+            accessibilityLabel="发送消息"
           >
             <Send size={18} color={Colors.white} />
           </Pressable>
@@ -181,9 +281,13 @@ export default function AITab() {
 function MessageBubble({
   msg,
   onAction,
+  busyActionId,
+  actionBusy,
 }: {
   msg: ChatMessage;
   onAction: (a: AIAction) => void;
+  busyActionId: string | null;
+  actionBusy: boolean;
 }) {
   const isUser = msg.role === 'user';
   const isSystem = msg.role === 'system';
@@ -212,6 +316,8 @@ function MessageBubble({
               onPress={() => onAction(a)}
               fullWidth={false}
               style={styles.actionBtn}
+              loading={busyActionId === a.id}
+              disabled={actionBusy && busyActionId !== a.id}
             />
           ))}
         </View>
@@ -300,7 +406,23 @@ const styles = StyleSheet.create({
   actionBtn: { paddingHorizontal: Spacing.lg },
   thinking: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, padding: Spacing.md },
   thinkingText: { ...Typography.caption },
-  error: { ...Typography.caption, color: Colors.danger, paddingHorizontal: Spacing.lg, marginBottom: Spacing.sm },
+  errorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.sm,
+    paddingHorizontal: Spacing.lg,
+    marginBottom: Spacing.sm,
+  },
+  error: { ...Typography.caption, color: Colors.danger, flex: 1 },
+  retryButton: {
+    minHeight: 36,
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.md,
+    borderRadius: Radius.full,
+    backgroundColor: Colors.primarySoft,
+  },
+  retryText: { ...Typography.captionMedium, color: Colors.primary },
   inputBar: {
     flexDirection: 'row',
     alignItems: 'flex-end',

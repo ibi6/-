@@ -6,6 +6,7 @@ import {
   Settings,
   Crown,
   Activity,
+  BarChart3,
   LogOut,
   User as UserIcon,
 } from 'lucide-react-native';
@@ -90,6 +91,11 @@ export default function ProfileTab() {
 
       <View style={styles.menu}>
         <MenuRow
+          icon={<BarChart3 size={20} color={Colors.primary} />}
+          label="数据分析"
+          onPress={() => router.push('/analytics')}
+        />
+        <MenuRow
           icon={<Activity size={20} color={Colors.success} />}
           label="身体数据"
           onPress={() => router.push('/body')}
@@ -113,7 +119,7 @@ export default function ProfileTab() {
         />
       </View>
 
-      <Text style={styles.footer}>FitAI V1 · 本地 Mock 演示 · 非医疗建议</Text>
+      <Text style={styles.footer}>FitAI V2 · 本地 Mock 演示 · 非医疗建议</Text>
     </Screen>
   );
 }

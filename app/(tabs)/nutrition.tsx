@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
-import { Plus, Trash2 } from 'lucide-react-native';
+import { ChevronRight, Plus, Sparkles, Trash2 } from 'lucide-react-native';
 import {
   Button,
   Card,
@@ -27,6 +27,8 @@ export default function NutritionTab() {
   const setDate = useNutritionStore((s) => s.setDate);
   const removeMealFood = useNutritionStore((s) => s.removeMealFood);
   const deleteMeal = useNutritionStore((s) => s.deleteMeal);
+  const isFutureDate = selectedDate > todayISO();
+  const isTodayOrLater = selectedDate >= todayISO();
 
   const byType = useMemo(() => {
     const map = new Map<MealType, typeof meals>();
@@ -53,14 +55,29 @@ export default function NutritionTab() {
       <Text style={styles.title}>饮食</Text>
 
       <View style={styles.dateRow}>
-        <Pressable onPress={() => shiftDate(-1)} hitSlop={8}>
+        <Pressable
+          onPress={() => shiftDate(-1)}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="查看前一天饮食"
+        >
           <Text style={styles.dateNav}>‹ 前一天</Text>
         </Pressable>
-        <Pressable onPress={() => setDate(todayISO())}>
+        <Pressable
+          onPress={() => setDate(todayISO())}
+          accessibilityRole="button"
+          accessibilityLabel="返回今天"
+        >
           <Text style={styles.dateCenter}>{selectedDate}</Text>
         </Pressable>
-        <Pressable onPress={() => shiftDate(1)} hitSlop={8}>
-          <Text style={styles.dateNav}>后一天 ›</Text>
+        <Pressable
+          onPress={() => shiftDate(1)}
+          hitSlop={8}
+          disabled={isTodayOrLater}
+          accessibilityRole="button"
+          accessibilityLabel="查看后一天饮食"
+        >
+          <Text style={[styles.dateNav, isTodayOrLater && styles.dateNavDisabled]}>后一天 ›</Text>
         </Pressable>
       </View>
 
@@ -91,10 +108,46 @@ export default function NutritionTab() {
         </View>
       </Card>
 
+      <Pressable
+        style={({ pressed }) => [
+          styles.aiAction,
+          pressed && !isFutureDate && styles.aiActionPressed,
+          isFutureDate && styles.disabledAction,
+        ]}
+        onPress={() => router.push('/nutrition/recognition')}
+        disabled={isFutureDate}
+        accessibilityRole="button"
+        accessibilityLabel="使用 AI 拍照识别食物"
+      >
+        <View style={styles.aiIcon}>
+          <Sparkles size={21} color={Colors.primary} />
+        </View>
+        <View style={styles.aiCopy}>
+          <Text style={styles.aiTitle}>AI 拍照识别</Text>
+          <Text style={styles.aiHint}>上传餐食图片，快速生成候选和估算份量</Text>
+        </View>
+        <ChevronRight size={19} color={Colors.primary} />
+      </Pressable>
+
       <View style={styles.actions}>
-        <Button title="搜索添加食物" onPress={() => router.push('/nutrition/search')} style={styles.flex} />
-        <Button title="快捷添加" variant="soft" onPress={() => router.push('/nutrition/add')} style={styles.flex} />
+        <Button
+          title="搜索添加食物"
+          onPress={() => router.push('/nutrition/search')}
+          disabled={isFutureDate}
+          style={styles.flex}
+        />
+        <Button
+          title="快捷添加"
+          variant="soft"
+          onPress={() => router.push('/nutrition/add')}
+          disabled={isFutureDate}
+          style={styles.flex}
+        />
       </View>
+
+      {isFutureDate ? (
+        <Text style={styles.futureHint}>未来日期仅供查看，不能提前记录“已食用”内容。</Text>
+      ) : null}
 
       {MEAL_ORDER.map((type) => {
         const list = byType.get(type) ?? [];
@@ -104,33 +157,56 @@ export default function NutritionTab() {
           <View key={type}>
             <SectionHeader
               title={`${mealTypeLabel(type)} · ${Math.round(mealCal)} kcal`}
-              actionLabel="添加"
-              onAction={() => router.push({ pathname: '/nutrition/search', params: { mealType: type } })}
+              actionLabel={isFutureDate ? undefined : '添加'}
+              onAction={
+                isFutureDate
+                  ? undefined
+                  : () => router.push({ pathname: '/nutrition/search', params: { mealType: type } })
+              }
             />
             {foods.length === 0 ? (
               <Card style={styles.emptyMeal}>
                 <Text style={styles.emptyText}>还没有记录</Text>
-                <Pressable
-                  style={styles.addChip}
-                  onPress={() => router.push({ pathname: '/nutrition/search', params: { mealType: type } })}
-                >
-                  <Plus size={16} color={Colors.primary} />
-                  <Text style={styles.addChipText}>添加</Text>
-                </Pressable>
+                {!isFutureDate ? (
+                  <Pressable
+                    style={styles.addChip}
+                    onPress={() => router.push({ pathname: '/nutrition/search', params: { mealType: type } })}
+                    accessibilityRole="button"
+                    accessibilityLabel={`添加${mealTypeLabel(type)}`}
+                  >
+                    <Plus size={16} color={Colors.primary} />
+                    <Text style={styles.addChipText}>添加</Text>
+                  </Pressable>
+                ) : null}
               </Card>
             ) : (
               list.map((meal) => (
                 <Card key={meal.id} style={styles.mealCard}>
                   {meal.foods.map((f) => (
                     <View key={f.id} style={styles.foodRow}>
-                      <View style={styles.foodInfo}>
+                      <Pressable
+                        style={styles.foodInfo}
+                        onPress={() =>
+                          router.push({
+                            pathname: '/nutrition/food/[id]',
+                            params: { id: f.foodId, mealType: type },
+                          })
+                        }
+                        accessibilityRole="link"
+                        accessibilityLabel={`查看${f.name}营养详情`}
+                      >
                         <Text style={styles.foodName}>{f.name}</Text>
                         <Text style={styles.foodMeta}>
                           {f.weightG}g · {Math.round(f.calories)} kcal · P{Math.round(f.protein)} C
                           {Math.round(f.carbs)} F{Math.round(f.fat)}
                         </Text>
-                      </View>
-                      <Pressable onPress={() => onRemoveFood(meal.id, f.id, f.name)} hitSlop={8}>
+                      </Pressable>
+                      <Pressable
+                        onPress={() => onRemoveFood(meal.id, f.id, f.name)}
+                        hitSlop={8}
+                        accessibilityRole="button"
+                        accessibilityLabel={`删除${f.name}`}
+                      >
                         <Trash2 size={18} color={Colors.danger} />
                       </Pressable>
                     </View>
@@ -143,6 +219,8 @@ export default function NutritionTab() {
                           { text: '删除', style: 'destructive', onPress: () => void deleteMeal(meal.id) },
                         ])
                       }
+                      accessibilityRole="button"
+                      accessibilityLabel={`删除${mealTypeLabel(type)}全部记录`}
                     >
                       <Text style={styles.deleteMeal}>删除整餐</Text>
                     </Pressable>
@@ -159,7 +237,7 @@ export default function NutritionTab() {
           title="今天还没吃什么？"
           description="搜索食物或用 AI 识别添加"
           actionLabel="去添加"
-          onAction={() => router.push('/nutrition/search')}
+          onAction={isFutureDate ? undefined : () => router.push('/nutrition/search')}
         />
       ) : null}
     </Screen>
@@ -175,6 +253,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
   },
   dateNav: { ...Typography.captionMedium, color: Colors.primary },
+  dateNavDisabled: { color: Colors.textMuted },
   dateCenter: { ...Typography.bodyMedium },
   calRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
   calValue: { ...Typography.number },
@@ -184,7 +263,32 @@ const styles = StyleSheet.create({
   overHint: { ...Typography.caption, color: Colors.warning, marginBottom: Spacing.sm },
   bar: { marginVertical: Spacing.md },
   macroRow: { flexDirection: 'row', justifyContent: 'space-around', marginTop: Spacing.sm },
+  aiAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    marginTop: Spacing.lg,
+    padding: Spacing.lg,
+    borderRadius: Radius.lg,
+    backgroundColor: Colors.primarySoft,
+    borderWidth: 1,
+    borderColor: '#DDD6FF',
+  },
+  aiActionPressed: { opacity: 0.9, transform: [{ scale: 0.99 }] },
+  disabledAction: { opacity: 0.48 },
+  aiIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: Radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.surface,
+  },
+  aiCopy: { flex: 1, minWidth: 0 },
+  aiTitle: { ...Typography.bodyMedium, color: Colors.primary },
+  aiHint: { ...Typography.caption, marginTop: 2 },
   actions: { flexDirection: 'row', gap: Spacing.md, marginTop: Spacing.lg, marginBottom: Spacing.sm },
+  futureHint: { ...Typography.caption, color: Colors.warning, textAlign: 'center', marginBottom: Spacing.sm },
   flex: { flex: 1 },
   emptyMeal: {
     flexDirection: 'row',

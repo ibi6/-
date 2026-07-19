@@ -12,7 +12,13 @@ export default function WorkoutSummaryScreen() {
   const phase = useWorkoutStore((s) => s.phase);
 
   const session = useMemo(() => {
-    return sessions.find((s) => s.completedAt) ?? sessions[0] ?? null;
+    const completed = sessions.filter((s) => s.completedAt);
+    if (completed.length === 0) return sessions[0] ?? null;
+    return [...completed].sort((a, b) => {
+      const ta = a.completedAt ?? a.startedAt ?? '';
+      const tb = b.completedAt ?? b.startedAt ?? '';
+      return tb.localeCompare(ta);
+    })[0];
   }, [sessions]);
 
   if (!session) {

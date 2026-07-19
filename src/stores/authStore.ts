@@ -1,9 +1,9 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { AuthUser } from '@/types';
 import { api } from '@/services/api';
 import { AppConfig } from '@/constants';
+import { migratePersistedState, safeAsyncStorage } from './persistStorage';
 
 type AuthState = {
   user: AuthUser | null;
@@ -72,7 +72,8 @@ export const useAuthStore = create<AuthState>()(
     {
       name: 'fitai-auth',
       version: AppConfig.storeVersion,
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createJSONStorage(() => safeAsyncStorage),
+      migrate: (persistedState) => migratePersistedState<AuthState>(persistedState),
       partialize: (s) => ({ user: s.user, isAuthenticated: s.isAuthenticated }),
     },
   ),

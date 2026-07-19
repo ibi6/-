@@ -34,8 +34,9 @@ export function startOfWeek(dateStr: string): string {
 }
 
 export function formatDuration(sec: number): string {
-  const m = Math.floor(sec / 60);
-  const s = sec % 60;
+  const safeSec = Number.isFinite(sec) ? Math.max(0, Math.floor(sec)) : 0;
+  const m = Math.floor(safeSec / 60);
+  const s = safeSec % 60;
   if (m >= 60) {
     const h = Math.floor(m / 60);
     const rm = m % 60;

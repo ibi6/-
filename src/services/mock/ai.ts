@@ -64,7 +64,7 @@ function matchKeyword(input: string, context: AIContext): AIResponse {
           id: 'add_hotpot',
           label: '添加到今日晚餐',
           type: 'add_food',
-          payload: { foodId: 'food_hotpot', weightG: 400 },
+          payload: { foodId: 'food_hotpot', weightG: 400, mealType: 'dinner' },
         },
       ],
       disclaimer: '估算值，实际因食材差异较大。',
@@ -90,7 +90,14 @@ function matchKeyword(input: string, context: AIContext): AIResponse {
           primaryActionId: 'add_dinner',
         },
       ],
-      actions: [{ id: 'add_dinner', label: '添加推荐晚餐', type: 'add_food' }],
+      actions: [
+        {
+          id: 'add_dinner',
+          label: '添加鸡胸到晚餐',
+          type: 'add_food',
+          payload: { foodId: 'food_chicken', weightG: 150, mealType: 'dinner' },
+        },
+      ],
     });
   }
 
