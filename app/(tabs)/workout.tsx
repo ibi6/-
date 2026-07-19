@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
+import { ChevronRight } from 'lucide-react-native';
 import { Button, Card, Chip, EmptyState, Screen, SectionHeader } from '@/components/common';
 import { Colors, Spacing, Typography } from '@/theme';
 import { useWorkoutStore } from '@/stores';
@@ -75,7 +76,7 @@ export default function WorkoutTab() {
         days.map((day) => {
           const done = completedDates.has(day.date);
           return (
-            <Card key={day.date} style={styles.dayCard} onPress={() => !day.isRestDay && onStart(day)}>
+            <Card key={day.date} style={styles.dayCard}>
               <View style={styles.dayHeader}>
                 <View>
                   <Text style={styles.dayWeek}>{weekdayLabel(day.date)}</Text>
@@ -95,17 +96,33 @@ export default function WorkoutTab() {
               </Text>
               {!day.isRestDay ? (
                 <View style={styles.exList}>
-                  {day.exercises.slice(0, 3).map((ex) => {
+                  {day.exercises.map((ex) => {
                     const meta = getExerciseById(ex.exerciseId);
+                    const exerciseName = meta?.name ?? '未知动作';
                     return (
-                      <Text key={ex.exerciseId} style={styles.exItem}>
-                        · {meta?.name ?? ex.exerciseId} {ex.sets}×{ex.reps}
-                      </Text>
+                      <Pressable
+                        key={ex.exerciseId}
+                        style={({ pressed }) => [styles.exLink, pressed && styles.exLinkPressed]}
+                        onPress={() =>
+                          router.push({
+                            pathname: '/workout/exercise/[id]',
+                            params: { id: ex.exerciseId },
+                          })
+                        }
+                        accessibilityRole="link"
+                        accessibilityLabel={`查看${exerciseName}动作详情`}
+                        accessibilityHint="打开动作说明、要点和常见错误"
+                      >
+                        <Text style={styles.exItem} numberOfLines={2}>
+                          · {exerciseName} {ex.sets}×{ex.reps}
+                        </Text>
+                        <View style={styles.exDetailWrap}>
+                          <Text style={styles.exDetail}>详情</Text>
+                          <ChevronRight size={16} color={Colors.primary} />
+                        </View>
+                      </Pressable>
                     );
                   })}
-                  {day.exercises.length > 3 ? (
-                    <Text style={styles.exItem}>…另有 {day.exercises.length - 3} 个动作</Text>
-                  ) : null}
                 </View>
               ) : null}
               {!day.isRestDay && !done ? (
@@ -158,7 +175,11 @@ const styles = StyleSheet.create({
   dayTitle: { ...Typography.h3, marginTop: Spacing.sm },
   dayMeta: { ...Typography.caption, marginTop: 4 },
   exList: { marginTop: Spacing.md },
-  exItem: { ...Typography.caption, marginBottom: 2 },
+  exLink: { flexDirection: 'row', alignItems: 'center', minHeight: 44, borderRadius: 10 },
+  exLinkPressed: { backgroundColor: Colors.primarySoft },
+  exItem: { ...Typography.caption, flex: 1, paddingVertical: Spacing.sm },
+  exDetailWrap: { flexDirection: 'row', alignItems: 'center', marginLeft: Spacing.sm },
+  exDetail: { ...Typography.label, color: Colors.primary },
   startBtn: { marginTop: Spacing.md },
   sessionCard: { marginBottom: Spacing.sm },
 });

@@ -330,3 +330,103 @@ export const EXERCISES: Exercise[] = [
 export function getExerciseById(id: string): Exercise | undefined {
   return EXERCISES.find((e) => e.id === id);
 }
+
+export type ExerciseDetailViewModel = {
+  id: string;
+  name: string;
+  primaryMuscle: string;
+  secondaryMuscles: string;
+  equipment: string;
+  difficulty: string;
+  description: string;
+  defaults: {
+    sets: string;
+    reps: string;
+    rest: string;
+  };
+  cues: string[];
+  commonMistakes: string[];
+  primaryAction: {
+    label: string;
+    route: '/workout/session' | '/(tabs)/workout';
+  };
+};
+
+const MUSCLE_LABELS: Record<string, string> = {
+  chest: '胸部',
+  back: '背部',
+  shoulders: '肩部',
+  biceps: '肱二头肌',
+  triceps: '肱三头肌',
+  legs: '腿部',
+  glutes: '臀部',
+  core: '核心',
+  full_body: '全身',
+  cardio: '心肺',
+};
+
+const EQUIPMENT_LABELS: Record<string, string> = {
+  none: '无需器械',
+  dumbbells: '哑铃',
+  full_gym: '健身房器械',
+  home_basic: '居家基础器械',
+  barbell: '杠铃',
+  cable: '绳索器械',
+  machine: '固定器械',
+  bodyweight: '徒手',
+  dumbbell: '哑铃',
+};
+
+const DIFFICULTY_LABELS: Record<number, string> = {
+  1: '入门',
+  2: '简单',
+  3: '中等',
+  4: '较难',
+  5: '高难',
+};
+
+export function normalizeExerciseRouteId(routeId: unknown): string | null {
+  const candidate = Array.isArray(routeId) ? routeId[0] : routeId;
+  if (typeof candidate !== 'string') return null;
+  const normalized = candidate.trim();
+  return normalized.length > 0 ? normalized : null;
+}
+
+function formatRestDuration(seconds: number): string {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  if (minutes === 0) return `${remainingSeconds} 秒`;
+  if (remainingSeconds === 0) return `${minutes} 分钟`;
+  return `${minutes} 分 ${remainingSeconds} 秒`;
+}
+
+export function createExerciseDetailViewModel(
+  routeId: unknown,
+  hasActiveSession: boolean,
+): ExerciseDetailViewModel | null {
+  const id = normalizeExerciseRouteId(routeId);
+  const exercise = id ? getExerciseById(id) : undefined;
+  if (!exercise) return null;
+
+  return {
+    id: exercise.id,
+    name: exercise.name,
+    primaryMuscle: MUSCLE_LABELS[exercise.muscleGroup] ?? '其他',
+    secondaryMuscles:
+      exercise.secondaryMuscles?.map((muscle) => MUSCLE_LABELS[muscle] ?? '其他').join('、') ??
+      '无',
+    equipment: EQUIPMENT_LABELS[exercise.equipment] ?? '其他器械',
+    difficulty: `${DIFFICULTY_LABELS[exercise.difficulty] ?? '未知'} · ${exercise.difficulty}/5`,
+    description: exercise.description,
+    defaults: {
+      sets: `${exercise.defaultSets} 组`,
+      reps: `${exercise.defaultReps} 次`,
+      rest: formatRestDuration(exercise.defaultRestSec),
+    },
+    cues: exercise.cues,
+    commonMistakes: exercise.commonMistakes,
+    primaryAction: hasActiveSession
+      ? { label: '进入当前训练', route: '/workout/session' }
+      : { label: '返回训练计划', route: '/(tabs)/workout' },
+  };
+}
