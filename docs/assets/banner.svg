@@ -106,14 +106,14 @@
       <circle cx="848" cy="178" r="2" fill="#67E8F9"/>
       <text x="868" y="174" fill="#557A7D" font-size="9" font-weight="700" letter-spacing="1">02</text>
       <text x="868" y="188" fill="#D6E9E8" font-size="12" font-weight="700" letter-spacing="0.8">REASSEMBLE</text>
-      <text x="1168" y="182" fill="#739CA1" font-size="10" font-weight="600" text-anchor="end">842 STREAMS</text>
+      <text x="1168" y="182" fill="#739CA1" font-size="10" font-weight="600" text-anchor="end">FLOW INDEXED</text>
 
       <rect x="828" y="206" width="364" height="42" rx="10" fill="#091A22"/>
       <circle cx="848" cy="227" r="6" fill="#091A22" stroke="#3B7C7E" stroke-width="2"/>
       <circle cx="848" cy="227" r="2" fill="#67E8F9"/>
       <text x="868" y="223" fill="#557A7D" font-size="9" font-weight="700" letter-spacing="1">03</text>
       <text x="868" y="237" fill="#D6E9E8" font-size="12" font-weight="700" letter-spacing="0.8">EXTRACT</text>
-      <text x="1168" y="231" fill="#739CA1" font-size="10" font-weight="600" text-anchor="end">136 PAYLOADS</text>
+      <text x="1168" y="231" fill="#739CA1" font-size="10" font-weight="600" text-anchor="end">PAYLOAD READY</text>
 
       <rect x="828" y="255" width="364" height="49" rx="10" fill="#0B282C" stroke="#1D5655"/>
       <circle cx="848" cy="279" r="7" fill="#103838" stroke="#5EEAD4" stroke-width="2"/>

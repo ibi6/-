@@ -17,27 +17,27 @@
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| GET | `/tasks` | 任务列表（`status`、`q`） |
+| GET | `/tasks` | 任务列表（`status`、`q`、`limit`、`offset`） |
 | GET | `/tasks/{id}` | 任务详情 |
 | POST | `/tasks/upload` | 表单字段 `file` 上传 PCAP |
 | POST | `/tasks/{id}/reparse` | 重新入队解析 |
 
 ## 会话
 
-`GET /sessions?task_id=&protocol=&q=`
+`GET /sessions?task_id=&protocol=&q=&limit=&offset=`
 
 ## 载荷
 
 | 方法 | 路径 |
 |------|------|
-| GET | `/payloads?task_id=&session_id=&type=&q=` |
+| GET | `/payloads?task_id=&session_id=&type=&q=&limit=&offset=` |
 | GET | `/payloads/{id}` |
 
 ## 告警
 
 | 方法 | 路径 |
 |------|------|
-| GET | `/alerts?level=&status=` |
+| GET | `/alerts?level=&status=&limit=&offset=` |
 | POST | `/alerts/{id}/resolve` |
 
 ## 日志与配置
@@ -49,3 +49,8 @@
 ## 错误格式
 
 HTTP 状态码 + JSON：`{ "detail": "错误说明" }`
+
+- 路径 ID 必须为正整数。
+- 任务状态、告警级别与告警状态使用 v1.0 枚举，未知值返回 422。
+- 活动任务重复提交解析返回 409。
+- 上传过大返回 413，无效/不支持的抓包返回 400。

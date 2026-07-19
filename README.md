@@ -3,11 +3,11 @@
 </p>
 
 <p align="center">
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/RELEASE-v1.0-14B8A6?style=for-the-badge&amp;labelColor=07131D" alt="release v1.0" /></a>
-  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/PYTHON-3.11%2B-0F2630?style=for-the-badge&amp;logo=python&amp;logoColor=7DD3FC&amp;labelColor=07131D" alt="Python 3.11+" /></a>
-  <a href="https://react.dev/"><img src="https://img.shields.io/badge/REACT-19-0F2630?style=for-the-badge&amp;logo=react&amp;logoColor=67E8F9&amp;labelColor=07131D" alt="React 19" /></a>
-  <a href="backend/requirements.txt"><img src="https://img.shields.io/badge/FASTAPI-API-0F2630?style=for-the-badge&amp;logo=fastapi&amp;logoColor=5EEAD4&amp;labelColor=07131D" alt="FastAPI" /></a>
-  <a href="docker-compose.yml"><img src="https://img.shields.io/badge/DOCKER-COMPOSE-0F2630?style=for-the-badge&amp;logo=docker&amp;logoColor=7DD3FC&amp;labelColor=07131D" alt="Docker Compose" /></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/release-v1.0-0F766E?style=flat-square&amp;labelColor=07131D" alt="release v1.0" /></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/interface-UI_V2-14B8A6?style=flat-square&amp;labelColor=07131D" alt="second edition UI V2" /></a>
+  <a href="https://github.com/ibi6/-/actions/workflows/ci.yml"><img src="https://github.com/ibi6/-/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.11%2B-0F2630?style=flat-square&amp;logo=python&amp;logoColor=7DD3FC" alt="Python 3.11+" /></a>
+  <a href="https://react.dev/"><img src="https://img.shields.io/badge/React-19-0F2630?style=flat-square&amp;logo=react&amp;logoColor=67E8F9" alt="React 19" /></a>
 </p>
 
 <p align="center">
@@ -15,10 +15,7 @@
   <sub>本地优先 · 可检索 · 可审计 · 面向网络运维、安全分析与教学场景</sub>
 </p>
 
-<p align="center">
-  <strong>当前展示为第二版界面（UI V2）</strong><br/>
-  <sub>这是 v1.0 产品线的第二轮视觉与交互优化，不等同于路线图中的 v2.0 功能版本。</sub>
-</p>
+<p align="center"><sub><strong>PayloadX v1.0 · 第二版界面（UI V2）</strong> — 第二轮视觉与交互优化，不等同于产品 v2.0。</sub></p>
 
 <p align="center">
   <a href="#快速开始">快速开始</a> ·
@@ -85,11 +82,17 @@
 
 ## 界面预览
 
-> 发布前请将真实截图放入 `docs/assets/screenshots/`（建议 1600×900）。
+> 真实运行数据 · 1440 × 900 · PayloadX v1.0 第二版界面
 
-| 工作台 | 载荷详情 | 流量捕获 |
-|--------|----------|----------|
-| 指标卡 · 协议占比 · 最近任务 | 预览 / Hex / 元数据 | 上传 · 任务进度 |
+| 调查工作台 | 流量捕获 |
+|------------|----------|
+| <img src="docs/assets/screenshots/dashboard-v2.png" alt="PayloadX 调查工作台" width="100%" /> | <img src="docs/assets/screenshots/capture-v2.png" alt="PayloadX 流量捕获" width="100%" /> |
+
+<p align="center">
+  <img src="docs/assets/screenshots/payload-v2.png" alt="PayloadX DNS 载荷详情" width="100%" />
+</p>
+
+<p align="center"><sub>载荷详情 · 结构化预览 / Hex / ASCII / 元数据</sub></p>
 
 Logo：[`public/logo.svg`](public/logo.svg) · Banner：[`docs/assets/banner.svg`](docs/assets/banner.svg)
 
